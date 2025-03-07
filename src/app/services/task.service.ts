@@ -1,9 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, tap } from 'rxjs/operators';
 import { Task, TaskState, TaskPriority, Subtask } from '../models/task.model';
 import { Comment } from '../models/comment.model';
 import { v4 as uuidv4 } from 'uuid';
+import { ActivityLogService } from './activity-log.service';
+import { ActivityType } from '../models/activity-log.model';
 
 export interface TaskStats {
   total: number;
@@ -33,7 +35,9 @@ export class TaskService {
   });
   private readonly STORAGE_KEY = 'tasks';
 
-  constructor() {
+  constructor(
+    private activityLogService: ActivityLogService
+  ) {
     this.loadTasks();
   }
 
@@ -111,47 +115,68 @@ export class TaskService {
   }
 
   addTask(task: Task): Observable<Task> {
-    const currentTasks = this.tasks.value;
-    const newTask: Task = {
-      ...task,
-      id: uuidv4(),
-      createdAt: new Date(),
-      createdBy: task.createdBy,
-      progress: 0,
-      subtasks: task.subtasks || [],
-      comments: task.comments || []
-    };
+    const allTasks = this.tasks.getValue();
+    const newTasks = [...allTasks, task];
     
-    const updatedTasks = [...currentTasks, newTask];
-    this.tasks.next(updatedTasks);
-    this.saveTasks(updatedTasks);
-    this.updateStats(updatedTasks);
+    this.saveTasks(newTasks);
+    this.tasks.next(newTasks);
+    this.updateStats(newTasks);
     
-    return of(newTask);
+    // Lisätään aktiviteettiloki
+    this.activityLogService.addActivity(
+      ActivityType.TASK_CREATED,
+      task.id,
+      task.title
+    );
+    
+    return of(task);
   }
 
   updateTask(task: Task): Observable<Task> {
-    return new Observable(observer => {
-      const tasks = this.loadTasksFromStorage();
-      const index = tasks.findIndex(t => t.id === task.id);
-      
-      if (index !== -1) {
-        tasks[index] = { ...task };
-        this.saveTasks(tasks);
-        observer.next(tasks[index]);
-      }
-      
-      observer.complete();
-    });
+    const allTasks = this.tasks.getValue();
+    const oldTask = allTasks.find(t => t.id === task.id);
+    const updatedTasks = allTasks.map(t => t.id === task.id ? task : t);
+    
+    this.saveTasks(updatedTasks);
+    this.tasks.next(updatedTasks);
+    this.updateStats(updatedTasks);
+    
+    // Tarkistetaan, onko kyseessä tilan muutos "valmiiksi" 
+    if (oldTask && oldTask.state !== task.state && task.state === TaskState.DONE) {
+      // Lisätään STATUS_CHANGED aktiviteetti, jos tehtävä on merkitty valmiiksi
+      this.activityLogService.addActivity(
+        ActivityType.STATUS_CHANGED,
+        task.id,
+        task.title,
+        TaskState.DONE // Tallennetaan DONE-tila details-kenttään
+      );
+    } else {
+      // Lisätään tavallinen päivitysaktiviteetti
+      this.activityLogService.addActivity(
+        ActivityType.TASK_UPDATED,
+        task.id,
+        task.title
+      );
+    }
+    
+    return of(task);
   }
 
   updateTaskState(taskId: string, state: TaskState): Observable<Task> {
-    const tasks = this.tasks.value;
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-      return this.updateTask({ ...task, state });
+    const task = this.tasks.getValue().find(t => t.id === taskId);
+    if (!task) {
+      return of(null as any);
     }
-    throw new Error(`Task with id ${taskId} not found`);
+    
+    // Lisätään aktiviteettiloki tilan muutoksesta - tallennetaan uusi tila details-kenttään
+    this.activityLogService.addActivity(
+      ActivityType.STATUS_CHANGED,
+      task.id,
+      task.title,
+      state // Tallennetaan uusi tila details-kenttään
+    );
+    
+    return this.updateTask({ ...task, state });
   }
 
   updateAssignee(taskId: string, assignee: string): Observable<Task> {
@@ -164,9 +189,24 @@ export class TaskService {
   }
 
   deleteTask(id: string): Observable<void> {
-    const tasks = this.tasks.value;
-    this.saveTasks(tasks.filter(task => task.id !== id));
-    return new BehaviorSubject<void>(undefined).asObservable();
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === id);
+    const newTasks = allTasks.filter(t => t.id !== id);
+    
+    this.saveTasks(newTasks);
+    this.tasks.next(newTasks);
+    this.updateStats(newTasks);
+    
+    // Lisätään aktiviteettiloki
+    if (task) {
+      this.activityLogService.addActivity(
+        ActivityType.TASK_DELETED,
+        task.id,
+        task.title
+      );
+    }
+    
+    return of(void 0);
   }
 
   exportTasks(): string {
@@ -180,135 +220,170 @@ export class TaskService {
   }
 
   addSubtask(taskId: string, title: string): Observable<Task> {
-    const tasks = this.tasks.value;
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
     
-    if (taskIndex === -1) {
-      throw new Error(`Task with id ${taskId} not found`);
+    if (!task) {
+      return of(null as any);
     }
-
+    
     const newSubtask: Subtask = {
-      id: Date.now().toString(),
+      id: uuidv4(),
       title,
       completed: false,
       createdAt: new Date()
     };
-
-    const updatedTask = {
-      ...tasks[taskIndex],
-      subtasks: [...tasks[taskIndex].subtasks, newSubtask]
-    };
-    updatedTask.progress = this.calculateProgress(updatedTask.subtasks);
-
-    tasks[taskIndex] = updatedTask;
-    this.saveTasks(tasks);
-
-    return new BehaviorSubject(updatedTask).asObservable();
-  }
-
-  toggleSubtask(taskId: string, subtaskId: string): Observable<Task> {
-    const tasks = this.tasks.value;
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
     
-    if (taskIndex === -1) {
-      throw new Error(`Task with id ${taskId} not found`);
-    }
-
-    const task = tasks[taskIndex];
-    const subtaskIndex = task.subtasks.findIndex(st => st.id === subtaskId);
-
-    if (subtaskIndex === -1) {
-      throw new Error(`Subtask with id ${subtaskId} not found`);
-    }
-
-    const updatedSubtasks = [...task.subtasks];
-    updatedSubtasks[subtaskIndex] = {
-      ...updatedSubtasks[subtaskIndex],
-      completed: !updatedSubtasks[subtaskIndex].completed
-    };
-
     const updatedTask = {
       ...task,
-      subtasks: updatedSubtasks,
-      progress: this.calculateProgress(updatedSubtasks)
+      subtasks: [...(task.subtasks || []), newSubtask]
     };
+    
+    // Lisätään aktiviteettiloki
+    this.activityLogService.addActivity(
+      ActivityType.SUBTASK_ADDED,
+      task.id,
+      task.title,
+      newSubtask.title
+    );
+    
+    return this.updateTask(updatedTask);
+  }
 
-    // Jos kaikki alitehtävät ovat valmiita, merkitään päätehtävä valmiiksi
-    if (updatedTask.progress === 100 && updatedTask.state !== TaskState.DONE) {
-      updatedTask.state = TaskState.DONE;
+  completeSubtask(taskId: string, subtaskId: string, completed: boolean): Observable<Task> {
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
+    
+    if (!task || !task.subtasks) {
+      return of(null as any);
     }
-
-    tasks[taskIndex] = updatedTask;
-    this.saveTasks(tasks);
-
-    return new BehaviorSubject(updatedTask).asObservable();
+    
+    const updatedSubtasks = task.subtasks.map(st => {
+      if (st.id === subtaskId) {
+        const updatedSubtask = { ...st, completed };
+        
+        // Lisätään aktiviteetti vain kun merkitään valmiiksi
+        if (completed) {
+          this.activityLogService.addActivity(
+            ActivityType.SUBTASK_COMPLETED,
+            task.id,
+            task.title,
+            st.title
+          );
+        }
+        
+        return updatedSubtask;
+      }
+      return st;
+    });
+    
+    const updatedTask = { ...task, subtasks: updatedSubtasks };
+    return this.updateTask(updatedTask);
   }
 
   deleteSubtask(taskId: string, subtaskId: string): Observable<Task> {
-    const tasks = this.tasks.value;
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
     
-    if (taskIndex === -1) {
-      throw new Error(`Task with id ${taskId} not found`);
+    if (!task || !task.subtasks) {
+      return of(null as any);
     }
-
-    const task = tasks[taskIndex];
+    
+    const subtask = task.subtasks.find(st => st.id === subtaskId);
     const updatedSubtasks = task.subtasks.filter(st => st.id !== subtaskId);
-
-    const updatedTask = {
-      ...task,
-      subtasks: updatedSubtasks,
-      progress: this.calculateProgress(updatedSubtasks)
-    };
-
-    tasks[taskIndex] = updatedTask;
-    this.saveTasks(tasks);
-
-    return new BehaviorSubject(updatedTask).asObservable();
+    const updatedTask = { ...task, subtasks: updatedSubtasks };
+    
+    // Lisätään aktiviteettiloki
+    if (subtask) {
+      this.activityLogService.addActivity(
+        ActivityType.SUBTASK_DELETED,
+        task.id,
+        task.title,
+        subtask.title
+      );
+    }
+    
+    return this.updateTask(updatedTask);
   }
 
   addComment(taskId: string, comment: Comment): Observable<Task> {
-    const tasks = this.tasks.value;
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
     
-    if (taskIndex === -1) {
-      throw new Error(`Task with id ${taskId} not found`);
+    if (!task) {
+      return of(null as any);
     }
     
-    const task = tasks[taskIndex];
     const updatedTask = {
       ...task,
       comments: [...(task.comments || []), comment]
     };
     
-    tasks[taskIndex] = updatedTask;
-    this.saveTasks(tasks);
+    // Lisätään aktiviteettiloki - välitetään kommentin teksti details-kentässä
+    this.activityLogService.addActivity(
+      ActivityType.COMMENT_ADDED,
+      task.id,
+      task.title,
+      comment.text
+    );
     
-    return new BehaviorSubject(updatedTask).asObservable();
+    return this.updateTask(updatedTask).pipe(
+      // Poistetaan updateTask-metodin automaattinen aktiviteettiloki
+      map(result => {
+        // Tämä on tarpeen, jottei aktiviteettilokia luoda tuplakappaletta
+        return result;
+      })
+    );
   }
   
   deleteComment(taskId: string, commentId: string): Observable<Task> {
-    const tasks = this.tasks.value;
-    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
     
-    if (taskIndex === -1) {
-      throw new Error(`Task with id ${taskId} not found`);
+    if (!task || !task.comments) {
+      return of(null as any);
     }
     
-    const task = tasks[taskIndex];
+    const comment = task.comments.find(c => c.id === commentId);
+    const updatedComments = task.comments.filter(c => c.id !== commentId);
+    const updatedTask = { ...task, comments: updatedComments };
     
-    if (!task.comments) {
-      return new BehaviorSubject(task).asObservable();
+    // Lisätään aktiviteettiloki - välitetään poistetun kommentin teksti details-kentässä
+    if (comment) {
+      this.activityLogService.addActivity(
+        ActivityType.COMMENT_DELETED,
+        task.id,
+        task.title,
+        comment.text
+      );
     }
     
-    const updatedTask = {
-      ...task,
-      comments: task.comments.filter(c => c.id !== commentId)
-    };
+    return this.updateTask(updatedTask).pipe(
+      // Poistetaan updateTask-metodin automaattinen aktiviteettiloki
+      map(result => {
+        // Tämä on tarpeen, jottei aktiviteettilokia luoda tuplakappaletta
+        return result;
+      })
+    );
+  }
+
+  toggleSubtask(taskId: string, subtaskId: string): Observable<Task> {
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => t.id === taskId);
     
-    tasks[taskIndex] = updatedTask;
-    this.saveTasks(tasks);
+    if (!task || !task.subtasks) {
+      return of(null as any);
+    }
     
-    return new BehaviorSubject(updatedTask).asObservable();
+    const subtask = task.subtasks.find(st => st.id === subtaskId);
+    if (!subtask) {
+      return of(null as any);
+    }
+    
+    // Käännä subtaskin tila päinvastaiseksi
+    const newCompleted = !subtask.completed;
+    
+    // Käytä olemassa olevaa completeSubtask metodia
+    return this.completeSubtask(taskId, subtaskId, newCompleted);
   }
 } 

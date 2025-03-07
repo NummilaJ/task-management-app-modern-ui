@@ -8,18 +8,31 @@ import { UserManagementComponent } from './components/user-management/user-manag
 import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { KanbanViewComponent } from './components/kanban-view/kanban-view.component';
+import { DashboardComponent } from './components/dashboard/dashboard.component';
 
 export const routes: Routes = [
   { 
     path: '', 
-    component: TaskListComponent,
+    component: DashboardComponent,
     title: 'Task Management - Dashboard',
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'create',
+    component: TaskListComponent,
+    title: 'Task Management - Create Task',
     canActivate: [AuthGuard]
   },
   { 
     path: 'tasks', 
     component: TaskViewComponent,
     title: 'Task Management - All Tasks',
+    canActivate: [AuthGuard]
+  },
+  { 
+    path: 'tasks/:id', 
+    component: TaskViewComponent,
+    title: 'Task Management - Task Details',
     canActivate: [AuthGuard]
   },
   {

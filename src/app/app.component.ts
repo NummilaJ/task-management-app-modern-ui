@@ -39,15 +39,20 @@ import { ThemeService } from './services/theme.service';
         </div>
         
         <div class="p-4">
-          <a routerLink="/create" 
-             class="w-full p-3 mb-4 bg-blue-500 hover:bg-blue-600 rounded-lg text-white flex items-center justify-center transition-colors">
-            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            {{ translate('addTask') }}
-          </a>
-          
           <ul class="space-y-1">
+            <li>
+              <a routerLink="/" 
+                routerLinkActive="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                [routerLinkActiveOptions]="{exact: true}"
+                class="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors">
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                  </svg>
+                  {{ translate('dashboard') }}
+                </div>
+              </a>
+            </li>
             <li>
               <a routerLink="/tasks" 
                 routerLinkActive="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"

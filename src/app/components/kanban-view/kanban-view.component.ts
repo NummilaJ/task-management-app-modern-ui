@@ -31,13 +31,22 @@ import { Subscription } from 'rxjs';
       <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
         <div class="flex justify-between items-center mb-6">
           <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ translate('kanbanBoard') }}</h2>
-          <a routerLink="/tasks" 
-             class="btn-secondary flex items-center gap-2 transform hover:scale-105">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-            </svg>
-            {{ translate('tableView') }}
-          </a>
+          <div class="flex items-center gap-2">
+            <a routerLink="/tasks" 
+               class="btn-secondary flex items-center gap-2 transform hover:scale-105 mr-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+              </svg>
+              {{ translate('tableView') }}
+            </a>
+            <a routerLink="/create" 
+               class="btn-primary flex items-center gap-2 transform hover:scale-105">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              {{ translate('newTask') }}
+            </a>
+          </div>
         </div>
         
         <!-- Suodattimet -->

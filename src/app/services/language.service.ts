@@ -186,7 +186,7 @@ export class LanguageService {
     
     // Näkymätekstit
     noCategory: { 
-      en: 'No category', 
+      en: 'No Category', 
       fi: 'Ei kategoriaa' 
     },
     notAssigned: { 
@@ -284,6 +284,192 @@ export class LanguageService {
     createTask: { 
       en: 'Create Task', 
       fi: 'Luo tehtävä' 
+    },
+    
+    // Dashboard
+    dashboard: {
+      en: 'Dashboard',
+      fi: 'Dashboard'
+    },
+    tasksByStatus: {
+      en: 'Tasks by Status',
+      fi: 'Tehtävät tiloittain'
+    },
+    statusDistribution: {
+      en: 'Status Distribution',
+      fi: 'Tilojen jakauma'
+    },
+    tasksByPriority: {
+      en: 'Tasks by Priority',
+      fi: 'Tehtävät prioriteetin mukaan'
+    },
+    priorityDistribution: {
+      en: 'Priority Distribution',
+      fi: 'Prioriteettien jakauma'
+    },
+    recentTasks: {
+      en: 'Recent Tasks',
+      fi: 'Viimeisimmät tehtävät'
+    },
+    viewAll: {
+      en: 'View All',
+      fi: 'Näytä kaikki'
+    },
+    quickActions: {
+      en: 'Quick Actions',
+      fi: 'Pikavalinnat'
+    },
+    createTaskDesc: {
+      en: 'Create a new task',
+      fi: 'Luo uusi tehtävä'
+    },
+    kanbanDesc: {
+      en: 'Manage your tasks visually',
+      fi: 'Hallitse tehtäviäsi visuaalisesti'
+    },
+    categoriesDesc: {
+      en: 'Organize with categories',
+      fi: 'Järjestä kategorioilla'
+    },
+    completionRate: {
+      en: 'completion rate',
+      fi: 'valmistumisaste'
+    },
+    noRecentTasks: {
+      en: 'No recent tasks found',
+      fi: 'Ei viimeaikaisia tehtäviä'
+    },
+    highPriorityTasks: {
+      en: 'High Priority',
+      fi: 'Korkea prioriteetti'
+    },
+    
+    // Activity Log
+    activityLog: {
+      en: 'Activity Log',
+      fi: 'Aktiviteettiloki'
+    },
+    recentActivities: {
+      en: 'Recent Activities',
+      fi: 'Viimeisimmät tapahtumat'
+    },
+    taskCreated: {
+      en: 'created a task',
+      fi: 'lisäsi tehtävän'
+    },
+    taskUpdated: {
+      en: 'updated a task',
+      fi: 'päivitti tehtävää'
+    },
+    taskDeleted: {
+      en: 'deleted a task',
+      fi: 'poisti tehtävän'
+    },
+    subtaskAdded: {
+      en: 'added a subtask',
+      fi: 'lisäsi alitehtävän'
+    },
+    subtaskCompleted: {
+      en: 'completed a subtask',
+      fi: 'merkitsi alitehtävän valmiiksi'
+    },
+    subtaskDeleted: {
+      en: 'deleted a subtask',
+      fi: 'poisti alitehtävän'
+    },
+    commentAdded: {
+      en: 'added a comment',
+      fi: 'lisäsi kommentin'
+    },
+    commentDeleted: {
+      en: 'deleted a comment',
+      fi: 'poisti kommentin'
+    },
+    statusChanged: {
+      en: 'changed status of',
+      fi: 'muutti tehtävän tilan'
+    },
+    noActivities: {
+      en: 'No recent activities',
+      fi: 'Ei viimeaikaisia tapahtumia'
+    },
+    yesterday: {
+      en: 'Yesterday',
+      fi: 'Eilen'
+    },
+    showMore: {
+      en: 'Show more',
+      fi: 'Näytä lisää'
+    },
+    showLess: {
+      en: 'Show less',
+      fi: 'Näytä vähemmän'
+    },
+    
+    // Tehtäväkortin käännökset
+    subtasks: {
+      en: 'Subtasks',
+      fi: 'Alitehtävät'
+    },
+    enterSubtaskTitle: {
+      en: 'Enter subtask title',
+      fi: 'Syötä alitehtävän otsikko'
+    },
+    add: {
+      en: 'Add',
+      fi: 'Lisää'
+    },
+    addSubtask: {
+      en: 'Add Subtask',
+      fi: 'Lisää alitehtävä'
+    },
+    status: {
+      en: 'Status',
+      fi: 'Tila'
+    },
+    taskDescription: {
+      en: 'Task description',
+      fi: 'Tehtävän kuvaus'
+    },
+    noDescriptionProvided: {
+      en: 'No description provided',
+      fi: 'Ei kuvausta'
+    },
+    deleteSubtask: {
+      en: 'Delete Subtask',
+      fi: 'Poista alitehtävä'
+    },
+    deleteSubtaskConfirmation: {
+      en: 'Are you sure you want to delete this subtask? This action cannot be undone.',
+      fi: 'Haluatko varmasti poistaa tämän alitehtävän? Tätä toimenpidettä ei voi kumota.'
+    },
+    comments: {
+      en: 'Comments',
+      fi: 'Kommentit'
+    },
+    noCommentsYet: {
+      en: 'No comments yet',
+      fi: 'Ei kommentteja vielä'
+    },
+    addAComment: {
+      en: 'Add a comment...',
+      fi: 'Lisää kommentti...'
+    },
+    pressCtrlEnterToSend: {
+      en: 'Press Ctrl+Enter to send',
+      fi: 'Paina Ctrl+Enter lähettääksesi'
+    },
+    comment: {
+      en: 'Comment',
+      fi: 'Kommentoi'
+    },
+    needLoginToComment: {
+      en: 'You need to be logged in to add comments',
+      fi: 'Sinun täytyy kirjautua sisään lisätäksesi kommentteja'
+    },
+    created: {
+      en: 'Created',
+      fi: 'Luotu'
     },
   };
   

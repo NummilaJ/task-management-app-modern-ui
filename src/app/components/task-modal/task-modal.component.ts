@@ -9,6 +9,7 @@ import { User } from '../../models/user.model';
 import { Comment } from '../../models/comment.model';
 import { TaskCommentsComponent } from '../task-comments/task-comments.component';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
+import { LanguageService } from '../../services/language.service';
 
 @Component({
   selector: 'app-task-modal',
@@ -37,7 +38,7 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                   {{task.title}}
                 </h2>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  Created: {{task.createdAt | date:'d.M.yyyy HH:mm'}}
+                  {{ translate('created') }}: {{task.createdAt | date:'d.M.yyyy HH:mm'}}
                 </p>
               </div>
               <div class="flex items-center space-x-2">
@@ -55,7 +56,7 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
               <!-- Status and Priority in one row -->
               <div class="flex justify-between gap-3">
                 <div class="flex-1">
-                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Status</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('status') }}</span>
                   
                   <div *ngIf="isEditing && editedTask" class="flex space-x-2 mb-2">
                     <label class="inline-flex items-center cursor-pointer p-1 rounded-lg" 
@@ -112,13 +113,13 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                   </div>
                 </div>
                 <div>
-                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Priority</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('priority') }}</span>
                   <select *ngIf="isEditing && editedTask"
                           [(ngModel)]="editedTask.priority"
                           class="input-field text-sm">
-                    <option [value]="'LOW'">Low</option>
-                    <option [value]="'MEDIUM'">Medium</option>
-                    <option [value]="'HIGH'">High</option>
+                    <option [value]="'LOW'">{{ translate('low') }}</option>
+                    <option [value]="'MEDIUM'">{{ translate('medium') }}</option>
+                    <option [value]="'HIGH'">{{ translate('high') }}</option>
                   </select>
                   <span *ngIf="!isEditing"
                         class="badge"
@@ -135,7 +136,7 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
               <!-- Assignee and Category -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Assignee</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('assignee') }}</span>
                   <div class="flex items-center">
                     <svg class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -151,32 +152,32 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                     </select>
                     <span *ngIf="!isEditing" 
                           class="text-sm text-gray-900 dark:text-white">
-                      {{getAssigneeName(task.assignee) || 'Not assigned'}}
+                      {{getAssigneeName(task.assignee) || translate('notAssigned')}}
                     </span>
                   </div>
                 </div>
                 <div>
-                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Category</span>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('category') }}</span>
                   <div class="flex items-center">
                     <svg class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
                     </svg>
                     <select *ngIf="isEditing && editedTask"
                             [(ngModel)]="editedTask.category"
-                            class="input-field flex-1 text-sm">
-                      <option value="">No Category</option>
-                      <option *ngFor="let category of categories" 
+                            class="input-field text-sm">
+                      <option value="">{{ translate('noCategory') }}</option>
+                      <option *ngFor="let category of categories"
                               [value]="category.id">
                         {{category.name}}
                       </option>
                     </select>
-                    <div *ngIf="!isEditing" class="flex items-center space-x-2">
+                    <div *ngIf="!isEditing">
                       <div *ngIf="task.category && getCategory(task.category) as category"
                            [style.backgroundColor]="category.color"
-                           class="w-2 h-2 rounded-full"></div>
-                      <span class="text-sm text-gray-900 dark:text-white">
-                        {{(task.category && getCategory(task.category)?.name) || 'No category'}}
-                      </span>
+                           class="inline-flex items-center px-2 py-1 rounded-full text-xs text-white">
+                        {{category.name}}
+                      </div>
+                      <span *ngIf="!task.category" class="text-sm text-gray-500 dark:text-gray-400">{{ translate('noCategory') }}</span>
                     </div>
                   </div>
                 </div>
@@ -184,15 +185,15 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 
               <!-- Description -->
               <div>
-                <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Description</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('description') }}</span>
                 <textarea *ngIf="isEditing && editedTask"
                          [(ngModel)]="editedTask.description"
                          rows="3"
-                         class="input-field w-full text-sm"
-                         placeholder="Task description"></textarea>
+                         class="input-field w-full text-sm min-h-[100px]"
+                         [placeholder]="translate('taskDescription')"></textarea>
                 <div *ngIf="!isEditing" 
                      class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm text-gray-700 dark:text-gray-300 max-h-28 overflow-y-auto">
-                  {{task.description || 'No description provided'}}
+                  {{task.description || translate('noDescriptionProvided')}}
                 </div>
               </div>
 
@@ -213,7 +214,7 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                 <!-- Subtasks -->
                 <details class="group">
                   <summary class="flex justify-between items-center cursor-pointer list-none">
-                    <span class="text-sm font-medium text-gray-800 dark:text-white">Subtasks</span>
+                    <span class="text-sm font-medium text-gray-800 dark:text-white">{{ translate('subtasks') }}</span>
                     <div class="flex items-center">
                       <svg class="w-4 h-4 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -227,14 +228,14 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                       <input [(ngModel)]="newSubtaskTitle"
                              (keyup.enter)="submitNewSubtask()"
                              class="input-field flex-1 text-sm"
-                             placeholder="Enter subtask title">
+                             [placeholder]="translate('enterSubtaskTitle')">
                       <button (click)="submitNewSubtask()"
                               class="btn-primary btn-sm text-xs">
-                        Add
+                        {{ translate('add') }}
                       </button>
                       <button (click)="cancelNewSubtask()"
                               class="btn-light btn-sm text-xs">
-                        Cancel
+                        {{ translate('cancel') }}
                       </button>
                     </div>
 
@@ -261,13 +262,14 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                     </div>
                     
                     <!-- Add button at the bottom -->
-                    <button *ngIf="!isEditing && !showSubtaskForm"
-                            (click)="addNewSubtask()"
-                            class="btn-secondary btn-sm text-xs mt-2 w-full flex items-center justify-center">
-                      <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    <button 
+                      *ngIf="!showSubtaskForm"
+                      (click)="addNewSubtask()"
+                      class="flex items-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                      <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                       </svg>
-                      Add Subtask
+                      {{ translate('addSubtask') }}
                     </button>
                   </div>
                 </details>
@@ -275,10 +277,12 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                 <!-- Comments section -->
                 <details class="group">
                   <summary class="flex justify-between items-center cursor-pointer list-none">
-                    <span class="text-sm font-medium text-gray-800 dark:text-white">Comments</span>
-                    <svg class="w-4 h-4 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
+                    <span class="text-sm font-medium text-gray-800 dark:text-white">{{ translate('comments') }}</span>
+                    <div class="flex items-center">
+                      <svg class="w-4 h-4 transform transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
                   </summary>
                   
                   <div class="pt-3">
@@ -322,9 +326,10 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
     
     <!-- Vahvistusmodaali alitehtävän poistolle -->
     <app-confirm-modal
+      *ngIf="isConfirmModalOpen && subtaskToDelete"
       [isOpen]="isConfirmModalOpen"
-      [title]="'Delete Subtask'"
-      [message]="'Are you sure you want to delete this subtask? This action cannot be undone.'"
+      [title]="translate('deleteSubtask')"
+      [message]="translate('deleteSubtaskConfirmation')"
       (confirm)="confirmDeleteSubtask()"
       (cancel)="cancelDeleteSubtask()">
     </app-confirm-modal>
@@ -382,7 +387,8 @@ export class TaskModalComponent implements OnInit {
 
   constructor(
     private taskService: TaskService,
-    private authService: AuthService
+    private authService: AuthService,
+    private languageService: LanguageService
   ) {}
 
   ngOnInit() {
@@ -503,5 +509,9 @@ export class TaskModalComponent implements OnInit {
   closeDeleteSubtaskModal() {
     this.isConfirmModalOpen = false;
     this.subtaskToDelete = null;
+  }
+
+  translate(key: string): string {
+    return this.languageService.translate(key);
   }
 } 

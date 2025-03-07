@@ -38,7 +38,7 @@ import { Subscription } from 'rxjs';
           <div class="col-span-2">
             <label for="title" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('title') }}</label>
             <input type="text" id="title" name="title" [(ngModel)]="newTask.title" 
-                   class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md h-12"
+                   class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                    placeholder="{{ translate('enterTaskTitle') }}" required>
           </div>
 
@@ -46,7 +46,7 @@ import { Subscription } from 'rxjs';
           <div class="col-span-2">
             <label for="description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('description') }}</label>
             <textarea id="description" name="description" [(ngModel)]="newTask.description"
-                      class="mt-1 focus:ring-blue-500 focus:border-blue-500 block w-full shadow-sm sm:text-sm border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white rounded-md"
+                      class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                       placeholder="{{ translate('enterTaskDescription') }}" rows="3"></textarea>
           </div>
 
@@ -54,7 +54,7 @@ import { Subscription } from 'rxjs';
           <div>
             <label for="assignee" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('assignee') }}</label>
             <select id="assignee" name="assignee" [(ngModel)]="newTask.assignee"
-                    class="mt-1 block w-full h-12 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
               <option [ngValue]="null">{{ translate('notAssigned') }}</option>
               <option *ngFor="let user of users" [ngValue]="user.id">{{user.username}}</option>
             </select>
@@ -64,7 +64,7 @@ import { Subscription } from 'rxjs';
           <div>
             <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('priority') }}</label>
             <select id="priority" name="priority" [(ngModel)]="newTask.priority"
-                    class="mt-1 block w-full h-12 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
               <option *ngFor="let priority of taskPriorities" [ngValue]="priority">
                 <ng-container [ngSwitch]="priority">
                   <ng-container *ngSwitchCase="'LOW'">{{ translate('low') }}</ng-container>
@@ -80,7 +80,7 @@ import { Subscription } from 'rxjs';
           <div>
             <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('category') }}</label>
             <select id="category" name="category" [(ngModel)]="newTask.category"
-                    class="mt-1 block w-full h-12 pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-700 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                    class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
               <option [ngValue]="null">{{ translate('noCategory') }}</option>
               <option *ngFor="let category of categories" [ngValue]="category.id">
                 {{category.name}}
