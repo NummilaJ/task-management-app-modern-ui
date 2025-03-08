@@ -383,7 +383,7 @@ export class TaskService {
     }
     
     // Luo uusi tehtäväkopio, joka korvaa vanhan - käytä syvää kopiointia
-    const updatedTask: Task = JSON.parse(JSON.stringify({
+    const updatedTask: Task = {
       id: task.id,
       title: task.title,
       description: task.description,
@@ -393,12 +393,14 @@ export class TaskService {
       priority: taskPriority,
       category: task.category,
       projectId: task.projectId,
-      createdAt: new Date(task.createdAt).toISOString(),
+      createdAt: task.createdAt instanceof Date ? new Date(task.createdAt) : new Date(task.createdAt || Date.now()),
       createdBy: task.createdBy,
+      deadline: task.deadline ? new Date(task.deadline) : null,
+      scheduledDate: task.scheduledDate ? new Date(task.scheduledDate) : null,
       progress: this.calculateProgress(task.subtasks || []),
-      subtasks: task.subtasks || [],
-      comments: task.comments || []
-    }));
+      subtasks: JSON.parse(JSON.stringify(task.subtasks || [])),
+      comments: JSON.parse(JSON.stringify(task.comments || []))
+    };
     
     // Käsittele projektiyhteyden muutos
     const projectService = this.injector.get(ProjectService);

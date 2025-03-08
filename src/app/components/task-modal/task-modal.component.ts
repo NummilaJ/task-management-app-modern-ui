@@ -225,11 +225,12 @@ import { LanguageService } from '../../services/language.service';
                   </svg>
                   <input *ngIf="isEditing && editedTask"
                          type="date"
-                         [(ngModel)]="scheduledDate"
+                         [value]="scheduledDate || ''"
+                         (input)="scheduledDate = $any($event.target).value"
                          class="input-field text-sm">
                   <div *ngIf="!isEditing" class="text-sm">
                     <span *ngIf="task.scheduledDate" class="text-gray-900 dark:text-gray-100">
-                      {{ task.scheduledDate | date:'dd.MM.yyyy' }}
+                      {{ formatDateForDisplay(task.scheduledDate) }}
                     </span>
                     <span *ngIf="!task.scheduledDate" class="text-gray-500 dark:text-gray-400">
                       {{ translate('noScheduledDate') }}
@@ -247,11 +248,12 @@ import { LanguageService } from '../../services/language.service';
                     </svg>
                     <input *ngIf="isEditing && editedTask"
                            type="date"
-                           [(ngModel)]="deadlineDate"
+                           [value]="deadlineDate || ''"
+                           (input)="deadlineDate = $any($event.target).value"
                            class="input-field text-sm">
                     <div *ngIf="!isEditing" class="text-sm">
                       <span *ngIf="task.deadline" class="text-red-500 dark:text-red-400">
-                        {{ task.deadline | date:'dd.MM.yyyy' }}
+                        {{ formatDateForDisplay(task.deadline) }}
                       </span>
                       <span *ngIf="!task.deadline" class="text-gray-500 dark:text-gray-400">
                         {{ translate('noDeadline') }}
@@ -463,7 +465,7 @@ export class TaskModalComponent implements OnInit {
   isConfirmModalOpen = false;
   subtaskToDelete: Subtask | null = null;
   
-  // Päivämäärien käsittelyä varten
+  // Täysin uusi lähestymistapa päivämäärien käsittelyyn
   deadlineDate: string | null = null;
   scheduledDate: string | null = null;
 
@@ -514,22 +516,86 @@ export class TaskModalComponent implements OnInit {
     }
   }
 
+  // Täysin uusi lähestymistapa päivämäärien käsittelyyn
+  formatDateForDisplay(date: Date | null): string {
+    if (!date) return '';
+    
+    // Varmistetaan että date on Date-objekti
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    
+    return `${day}.${month}.${year}`;
+  }
+  
+  formatDateForInput(date: Date | null): string {
+    if (!date) return '';
+    
+    // Varmistetaan että date on Date-objekti
+    const d = new Date(date);
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    
+    return `${year}-${month}-${day}`;
+  }
+  
+  parseDate(dateString: string): Date | null {
+    if (!dateString || dateString.trim() === '') return null;
+    
+    // Yritetään parsia yyyy-mm-dd muoto
+    if (dateString.includes('-')) {
+      try {
+        const [year, month, day] = dateString.split('-').map(num => parseInt(num, 10));
+        return new Date(year, month - 1, day);
+      } catch (e) {
+        console.error('Virhe päivämäärän parsimisessa:', e);
+        return null;
+      }
+    }
+    
+    // Yritetään parsia dd.mm.yyyy muoto
+    if (dateString.includes('.')) {
+      try {
+        const [day, month, year] = dateString.split('.').map(num => parseInt(num, 10));
+        return new Date(year, month - 1, day);
+      } catch (e) {
+        console.error('Virhe päivämäärän parsimisessa:', e);
+        return null;
+      }
+    }
+    
+    return null;
+  }
+
   startEdit() {
     if (!this.task) return;
     
+    console.log("Aloitetaan muokkaus, tehtävä:", this.task);
     this.editedTask = { ...this.task };
     
-    // Muunnetaan päivämäärät string-muotoon date-inputteja varten
+    // Muunnetaan päivämäärät string-muotoon
     if (this.task.deadline) {
-      const deadline = new Date(this.task.deadline);
-      this.deadlineDate = deadline.toISOString().split('T')[0];
+      try {
+        this.deadlineDate = this.formatDateForInput(this.task.deadline);
+        console.log("Muunnettu deadline string:", this.deadlineDate);
+      } catch (e) {
+        console.error("Virhe deadline-päivämäärän käsittelyssä:", e);
+        this.deadlineDate = null;
+      }
     } else {
       this.deadlineDate = null;
     }
     
     if (this.task.scheduledDate) {
-      const scheduledDate = new Date(this.task.scheduledDate);
-      this.scheduledDate = scheduledDate.toISOString().split('T')[0];
+      try {
+        this.scheduledDate = this.formatDateForInput(this.task.scheduledDate);
+        console.log("Muunnettu scheduledDate string:", this.scheduledDate);
+      } catch (e) {
+        console.error("Virhe scheduledDate-päivämäärän käsittelyssä:", e);
+        this.scheduledDate = null;
+      }
     } else {
       this.scheduledDate = null;
     }
@@ -627,18 +693,17 @@ export class TaskModalComponent implements OnInit {
 
   saveChanges() {
     if (this.editedTask) {
-      // Päivitä deadline ja scheduledDate kentät
-      if (this.deadlineDate) {
-        this.editedTask.deadline = new Date(this.deadlineDate);
-      } else {
-        this.editedTask.deadline = null;
-      }
+      console.log("Tallennetaan muutokset, syötetyt päivämäärät:");
+      console.log("deadlineDate:", this.deadlineDate);
+      console.log("scheduledDate:", this.scheduledDate);
       
-      if (this.scheduledDate) {
-        this.editedTask.scheduledDate = new Date(this.scheduledDate);
-      } else {
-        this.editedTask.scheduledDate = null;
-      }
+      // Päivitä deadline ja scheduledDate kentät
+      this.editedTask.deadline = this.parseDate(this.deadlineDate || '');
+      this.editedTask.scheduledDate = this.parseDate(this.scheduledDate || '');
+      
+      console.log("Muunnetut Date-objektit:");
+      console.log("deadline:", this.editedTask.deadline);
+      console.log("scheduledDate:", this.editedTask.scheduledDate);
       
       this.save.emit(this.editedTask);
       this.isEditing = false;
