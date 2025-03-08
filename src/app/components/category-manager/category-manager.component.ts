@@ -75,19 +75,23 @@ import { LanguageService } from '../../services/language.service';
             </thead>
             <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               <tr *ngFor="let category of categories" class="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-200">
-                <td class="px-6 py-4 whitespace-nowrap flex items-center space-x-2">
-                  <div class="w-4 h-4 rounded-full" [style.backgroundColor]="category.color"></div>
-                  <span class="text-sm text-gray-900 dark:text-white">{{category.name}}</span>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="flex items-center space-x-2">
+                    <div class="w-4 h-4 rounded-full" [style.backgroundColor]="category.color"></div>
+                    <span class="text-sm text-gray-900 dark:text-white">{{category.name}}</span>
+                  </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                  <button (click)="startEdit(category)"
-                          class="btn-secondary btn-sm">
-                    {{ translate('edit') }}
-                  </button>
-                  <button (click)="deleteCategory(category)"
-                          class="btn-danger btn-sm">
-                    {{ translate('deleteCategory') }}
-                  </button>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                  <div class="flex justify-end space-x-2">
+                    <button (click)="startEdit(category)"
+                            class="btn-secondary btn-sm">
+                      {{ translate('editCategory') }}
+                    </button>
+                    <button (click)="deleteCategory(category)"
+                            class="btn-danger btn-sm ml-2">
+                      {{ translate('deleteCategory') }}
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
