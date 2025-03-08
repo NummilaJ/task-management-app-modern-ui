@@ -223,16 +223,34 @@ import { LanguageService } from '../../services/language.service';
                   <svg class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <input *ngIf="isEditing && editedTask"
+                  <!-- Syöte näytetään vain jos muokkaaminen on sallittua (ei projektin lukitsemaa) -->
+                  <input *ngIf="isEditing && editedTask && !datesLockedByProject"
                          type="date"
                          [value]="scheduledDate || ''"
                          (input)="scheduledDate = $any($event.target).value"
                          class="input-field text-sm">
+                  <!-- Näytetään lukittu-ilmoitus muokkaustilassa -->
+                  <div *ngIf="isEditing && editedTask && datesLockedByProject" class="text-sm flex items-center">
+                    <span *ngIf="scheduledDate" class="text-gray-700 dark:text-gray-300 mr-2">
+                      {{ scheduledDate }}
+                    </span>
+                    <span *ngIf="!scheduledDate" class="text-gray-500 dark:text-gray-400 mr-2">
+                      {{ translate('noScheduledDate') }}
+                    </span>
+                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                  </div>
+                  <!-- Lukittu-ilmoitus kentän alla -->
+                  <div *ngIf="isEditing && datesLockedByProject" class="absolute mt-8 text-xs text-amber-500 dark:text-amber-400 italic">
+                    {{ translate('projectDateLock') }}
+                  </div>
+                  <!-- Katselutila -->
                   <div *ngIf="!isEditing" class="text-sm">
-                    <span *ngIf="task.scheduledDate" class="text-gray-900 dark:text-gray-100">
+                    <span *ngIf="task?.scheduledDate" class="text-gray-900 dark:text-gray-100">
                       {{ formatDateForDisplay(task.scheduledDate) }}
                     </span>
-                    <span *ngIf="!task.scheduledDate" class="text-gray-500 dark:text-gray-400">
+                    <span *ngIf="!task?.scheduledDate" class="text-gray-500 dark:text-gray-400">
                       {{ translate('noScheduledDate') }}
                     </span>
                   </div>
@@ -246,16 +264,34 @@ import { LanguageService } from '../../services/language.service';
                     <svg class="w-4 h-4 mr-1 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    <input *ngIf="isEditing && editedTask"
+                    <!-- Syöte näytetään vain jos muokkaaminen on sallittua (ei projektin lukitsemaa) -->
+                    <input *ngIf="isEditing && editedTask && !datesLockedByProject"
                            type="date"
                            [value]="deadlineDate || ''"
                            (input)="deadlineDate = $any($event.target).value"
                            class="input-field text-sm">
+                    <!-- Näytetään lukittu-ilmoitus muokkaustilassa -->
+                    <div *ngIf="isEditing && editedTask && datesLockedByProject" class="text-sm flex items-center">
+                      <span *ngIf="deadlineDate" class="text-red-500 dark:text-red-400 mr-2">
+                        {{ deadlineDate }}
+                      </span>
+                      <span *ngIf="!deadlineDate" class="text-gray-500 dark:text-gray-400 mr-2">
+                        {{ translate('noDeadline') }}
+                      </span>
+                      <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                      </svg>
+                    </div>
+                    <!-- Lukittu-ilmoitus kentän alla -->
+                    <div *ngIf="isEditing && datesLockedByProject" class="absolute mt-8 text-xs text-amber-500 dark:text-amber-400 italic">
+                      {{ translate('projectDateLock') }}
+                    </div>
+                    <!-- Katselutila -->
                     <div *ngIf="!isEditing" class="text-sm">
-                      <span *ngIf="task.deadline" class="text-red-500 dark:text-red-400">
+                      <span *ngIf="task?.deadline" class="text-red-500 dark:text-red-400">
                         {{ formatDateForDisplay(task.deadline) }}
                       </span>
-                      <span *ngIf="!task.deadline" class="text-gray-500 dark:text-gray-400">
+                      <span *ngIf="!task?.deadline" class="text-gray-500 dark:text-gray-400">
                         {{ translate('noDeadline') }}
                       </span>
                     </div>
@@ -465,9 +501,13 @@ export class TaskModalComponent implements OnInit {
   isConfirmModalOpen = false;
   subtaskToDelete: Subtask | null = null;
   
-  // Täysin uusi lähestymistapa päivämäärien käsittelyyn
+  // Päivämäärien käsittely
   deadlineDate: string | null = null;
   scheduledDate: string | null = null;
+  
+  // Projektin tiedot
+  currentProject: Project | null = null;
+  datesLockedByProject = false;
 
   constructor(
     private taskService: TaskService,
@@ -490,6 +530,34 @@ export class TaskModalComponent implements OnInit {
   loadProjects() {
     this.projectService.getProjects().subscribe(projects => {
       this.projects = projects;
+      
+      // Jos tehtävällä on projekti, tarkistetaan sen päivämäärät
+      if (this.task?.projectId) {
+        this.checkProjectDates();
+      }
+    });
+  }
+
+  // Tarkistaa onko tehtävän päivämäärät lukittu projektin vuoksi
+  checkProjectDates() {
+    if (!this.task?.projectId) {
+      this.datesLockedByProject = false;
+      this.currentProject = null;
+      return;
+    }
+    
+    const project = this.projects.find(p => p.id === this.task?.projectId);
+    this.currentProject = project || null;
+    
+    // Päivämäärät lukitaan, jos projektilla on määritetyt päivämäärät
+    this.datesLockedByProject = !!(
+      (project?.deadline || project?.startDate)
+    );
+    
+    console.log('Project dates check:', { 
+      projectId: this.task?.projectId, 
+      project, 
+      datesLocked: this.datesLockedByProject 
     });
   }
 
@@ -575,10 +643,21 @@ export class TaskModalComponent implements OnInit {
     console.log("Aloitetaan muokkaus, tehtävä:", this.task);
     this.editedTask = { ...this.task };
     
+    // Tarkistetaan projektin päivämäärät
+    this.checkProjectDates();
+    
     // Muunnetaan päivämäärät string-muotoon
     if (this.task.deadline) {
       try {
-        this.deadlineDate = this.formatDateForInput(this.task.deadline);
+        const deadline = new Date(this.task.deadline);
+        console.log("Alkuperäinen deadline:", deadline);
+        
+        // Muotoillaan päivämäärä turvallisesti YYYY-MM-DD muotoon
+        const year = deadline.getFullYear();
+        const month = String(deadline.getMonth() + 1).padStart(2, '0');
+        const day = String(deadline.getDate()).padStart(2, '0');
+        this.deadlineDate = `${year}-${month}-${day}`;
+        
         console.log("Muunnettu deadline string:", this.deadlineDate);
       } catch (e) {
         console.error("Virhe deadline-päivämäärän käsittelyssä:", e);
@@ -590,7 +669,15 @@ export class TaskModalComponent implements OnInit {
     
     if (this.task.scheduledDate) {
       try {
-        this.scheduledDate = this.formatDateForInput(this.task.scheduledDate);
+        const scheduledDate = new Date(this.task.scheduledDate);
+        console.log("Alkuperäinen scheduledDate:", scheduledDate);
+        
+        // Muotoillaan päivämäärä turvallisesti YYYY-MM-DD muotoon
+        const year = scheduledDate.getFullYear();
+        const month = String(scheduledDate.getMonth() + 1).padStart(2, '0');
+        const day = String(scheduledDate.getDate()).padStart(2, '0');
+        this.scheduledDate = `${year}-${month}-${day}`;
+        
         console.log("Muunnettu scheduledDate string:", this.scheduledDate);
       } catch (e) {
         console.error("Virhe scheduledDate-päivämäärän käsittelyssä:", e);
@@ -697,13 +784,17 @@ export class TaskModalComponent implements OnInit {
       console.log("deadlineDate:", this.deadlineDate);
       console.log("scheduledDate:", this.scheduledDate);
       
-      // Päivitä deadline ja scheduledDate kentät
-      this.editedTask.deadline = this.parseDate(this.deadlineDate || '');
-      this.editedTask.scheduledDate = this.parseDate(this.scheduledDate || '');
-      
-      console.log("Muunnetut Date-objektit:");
-      console.log("deadline:", this.editedTask.deadline);
-      console.log("scheduledDate:", this.editedTask.scheduledDate);
+      // Päivitä deadline ja scheduledDate kentät vain jos ne eivät ole lukittuja
+      if (!this.datesLockedByProject) {
+        this.editedTask.deadline = this.parseDate(this.deadlineDate || '');
+        this.editedTask.scheduledDate = this.parseDate(this.scheduledDate || '');
+        
+        console.log("Muunnetut Date-objektit:");
+        console.log("deadline:", this.editedTask.deadline);
+        console.log("scheduledDate:", this.editedTask.scheduledDate);
+      } else {
+        console.log("Päivämääräkentät lukittu projektin vuoksi - ei päivitetä");
+      }
       
       this.save.emit(this.editedTask);
       this.isEditing = false;

@@ -34,7 +34,9 @@ export class ProjectService {
       
       return parsedProjects.map(project => ({
         ...project,
-        createdAt: new Date(project.createdAt)
+        createdAt: new Date(project.createdAt),
+        deadline: project.deadline ? new Date(project.deadline) : null,
+        startDate: project.startDate ? new Date(project.startDate) : null
       }));
     } catch (e) {
       console.error('Error parsing projects from storage:', e);
@@ -74,21 +76,33 @@ export class ProjectService {
       createdAt: new Date(),
       createdBy: project.createdBy || null,
       taskIds: [],
-      color: project.color || this.getRandomColor()
+      color: project.color || this.getRandomColor(),
+      startDate: project.startDate || null,
+      deadline: project.deadline || null
     };
 
     const updatedProjects = [...this.projects.value, newProject];
     this.projects.next(updatedProjects);
     this.saveProjects(updatedProjects);
 
+    const activityDetails: any = {
+      projectId: newProject.id,
+      projectName: newProject.name
+    };
+    
+    if (newProject.startDate) {
+      activityDetails.startDate = newProject.startDate.toLocaleDateString();
+    }
+    
+    if (newProject.deadline) {
+      activityDetails.deadline = newProject.deadline.toLocaleDateString();
+    }
+
     this.activityLogService.addActivity({
       type: ActivityType.PROJECT_CREATED,
       timestamp: new Date(),
       userId: newProject.createdBy || 'anonymous',
-      details: {
-        projectId: newProject.id,
-        projectName: newProject.name
-      }
+      details: activityDetails
     });
 
     return of(newProject);
@@ -165,7 +179,25 @@ export class ProjectService {
         taskIds: [...project.taskIds, taskId]
       };
 
-      return this.updateProject(updatedProject);
+      // Päivitä projekti
+      const result = this.updateProject(updatedProject);
+      
+      // Päivitä tehtävän päivämäärät projektin mukaan
+      this.taskService.getTaskById(taskId).subscribe(task => {
+        if (task) {
+          // Jos projektilla on deadline ja tehtävällä ei ole tai se on myöhemmin kuin projektin
+          if (project.deadline && (!task.deadline || task.deadline > project.deadline)) {
+            this.taskService.setDeadline(taskId, project.deadline).subscribe();
+          }
+          
+          // Jos projektilla on aloituspäivä ja tehtävällä ei ole tai se on aiemmin kuin projektin
+          if (project.startDate && (!task.scheduledDate || task.scheduledDate < project.startDate)) {
+            this.taskService.setScheduledDate(taskId, project.startDate).subscribe();
+          }
+        }
+      });
+      
+      return result;
     }
 
     return of(project);
@@ -202,5 +234,141 @@ export class ProjectService {
       '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
     ];
     return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  /**
+   * Asettaa projektille määräajan
+   * @param projectId Projektin ID
+   * @param deadline Määräajan päivämäärä
+   * @returns Päivitetty projekti
+   */
+  setProjectDeadline(projectId: string, deadline: Date | null): Observable<Project> {
+    console.log(`Asetetaan määräaika projektille ${projectId}:`, deadline);
+    const allProjects = this.projects.getValue();
+    const projectIndex = allProjects.findIndex(p => p.id === projectId);
+    
+    if (projectIndex === -1) {
+      console.error(`Projektia ID:llä ${projectId} ei löydy`);
+      return of(null as unknown as Project);
+    }
+    
+    const project = { ...allProjects[projectIndex] };
+    project.deadline = deadline;
+    
+    const updatedProjects = [...allProjects];
+    updatedProjects[projectIndex] = project;
+    
+    this.projects.next(updatedProjects);
+    this.saveProjects(updatedProjects);
+    
+    // Päivitetään myös projektin tehtävien määräajat, jos deadline on asetettu
+    if (deadline) {
+      this.updateProjectTasksDeadline(project, deadline);
+    }
+    
+    // Lisää aktiviteettilokin merkintä
+    this.activityLogService.addActivity({
+      type: ActivityType.PROJECT_UPDATED,
+      timestamp: new Date(),
+      userId: project.createdBy || 'anonymous',
+      details: {
+        projectId: project.id,
+        projectName: project.name,
+        action: deadline ? `Määräaika asetettu: ${deadline.toLocaleDateString()}` : 'Määräaika poistettu'
+      }
+    });
+    
+    return of(project);
+  }
+
+  /**
+   * Asettaa projektille suunnitellun aloituspäivämäärän
+   * @param projectId Projektin ID
+   * @param startDate Suunniteltu aloituspäivämäärä
+   * @returns Päivitetty projekti
+   */
+  setProjectStartDate(projectId: string, startDate: Date | null): Observable<Project> {
+    console.log(`Asetetaan aloituspäivämäärä projektille ${projectId}:`, startDate);
+    const allProjects = this.projects.getValue();
+    const projectIndex = allProjects.findIndex(p => p.id === projectId);
+    
+    if (projectIndex === -1) {
+      console.error(`Projektia ID:llä ${projectId} ei löydy`);
+      return of(null as unknown as Project);
+    }
+    
+    const project = { ...allProjects[projectIndex] };
+    project.startDate = startDate;
+    
+    const updatedProjects = [...allProjects];
+    updatedProjects[projectIndex] = project;
+    
+    this.projects.next(updatedProjects);
+    this.saveProjects(updatedProjects);
+    
+    // Päivitetään myös projektin tehtävien aloituspäivät, jos startDate on asetettu
+    if (startDate) {
+      this.updateProjectTasksStartDate(project, startDate);
+    }
+    
+    // Lisää aktiviteettilokin merkintä
+    this.activityLogService.addActivity({
+      type: ActivityType.PROJECT_UPDATED,
+      timestamp: new Date(),
+      userId: project.createdBy || 'anonymous',
+      details: {
+        projectId: project.id,
+        projectName: project.name,
+        action: startDate ? `Aloituspäivä asetettu: ${startDate.toLocaleDateString()}` : 'Aloituspäivä poistettu'
+      }
+    });
+    
+    return of(project);
+  }
+
+  /**
+   * Päivittää projektin tehtävien määräajat projektin määräajan mukaan
+   * Jos tehtävällä ei ole määräaikaa tai sen määräaika on projektin määräajan jälkeen
+   * @param project Projekti
+   * @param deadline Määräaika
+   */
+  private updateProjectTasksDeadline(project: Project, deadline: Date): void {
+    // Käytetään taskService:ä tehtävien päivittämiseen
+    const taskService = this.taskService;
+    
+    // Haetaan kaikki projektin tehtävät
+    taskService.getTasks().subscribe(allTasks => {
+      const projectTasks = allTasks.filter(task => project.taskIds.includes(task.id));
+      
+      projectTasks.forEach(task => {
+        // Päivitetään vain jos tehtävällä ei ole deadline:a tai sen deadline on projektin jälkeen
+        if (!task.deadline || task.deadline > deadline) {
+          taskService.setDeadline(task.id, deadline).subscribe();
+        }
+      });
+    });
+  }
+
+  /**
+   * Päivittää projektin tehtävien aloituspäivät projektin aloituspäivän mukaan
+   * Jos tehtävällä ei ole aloituspäivää tai sen aloituspäivä on ennen projektin aloituspäivää
+   * @param project Projekti
+   * @param startDate Aloituspäivä
+   */
+  private updateProjectTasksStartDate(project: Project, startDate: Date): void {
+    // Käytetään taskService:ä tehtävien päivittämiseen
+    const taskService = this.taskService;
+    
+    // Haetaan kaikki projektin tehtävät
+    taskService.getTasks().subscribe(allTasks => {
+      const projectTasks = allTasks.filter(task => project.taskIds.includes(task.id));
+      
+      projectTasks.forEach(task => {
+        // Päivitetään vain jos tehtävällä ei ole aloituspäivää tai sen aloituspäivä on ennen projektin aloituspäivää
+        if (!task.scheduledDate || task.scheduledDate < startDate) {
+          taskService.setScheduledDate(task.id, startDate).subscribe();
+        }
+      });
+    });
   }
 } 

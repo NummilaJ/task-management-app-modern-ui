@@ -55,6 +55,72 @@ import { LanguageService } from '../../services/language.service';
             <span class="text-sm text-gray-500 dark:text-gray-400 block mb-1">{{ translate('created') }}</span>
             <span class="text-md font-medium text-gray-900 dark:text-white">{{ project?.createdAt | date:'dd.MM.yyyy' }}</span>
           </div>
+          
+          <!-- Projektin aloituspäivämäärä -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4 min-w-[180px] border border-gray-200 dark:border-gray-600">
+            <div class="flex justify-between items-start">
+              <span class="text-sm text-gray-500 dark:text-gray-400 block mb-1">{{ translate('startDate') }}</span>
+              <button *ngIf="!editingStartDate" (click)="editStartDate()" class="text-blue-500 hover:text-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+              </button>
+            </div>
+            <div *ngIf="!editingStartDate">
+              <span *ngIf="project?.startDate" class="text-md font-medium text-gray-900 dark:text-white">
+                {{ project?.startDate | date:'dd.MM.yyyy' }}
+              </span>
+              <span *ngIf="!project?.startDate" class="text-sm text-gray-500 dark:text-gray-400">
+                {{ translate('noStartDate') }}
+              </span>
+            </div>
+            <div *ngIf="editingStartDate" class="flex gap-2 mt-1">
+              <input type="date" [(ngModel)]="startDateInput" class="input-field text-sm">
+              <button (click)="saveStartDate()" class="btn-xs btn-success">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+              <button (click)="cancelEditStartDate()" class="btn-xs btn-danger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+          
+          <!-- Projektin määräaika -->
+          <div class="bg-white dark:bg-gray-700 rounded-lg shadow p-4 min-w-[180px] border border-gray-200 dark:border-gray-600">
+            <div class="flex justify-between items-start">
+              <span class="text-sm text-gray-500 dark:text-gray-400 block mb-1">{{ translate('deadline') }}</span>
+              <button *ngIf="!editingDeadline" (click)="editDeadline()" class="text-blue-500 hover:text-blue-700">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+              </button>
+            </div>
+            <div *ngIf="!editingDeadline">
+              <span *ngIf="project?.deadline" class="text-md font-medium text-red-500 dark:text-red-400">
+                {{ project?.deadline | date:'dd.MM.yyyy' }}
+              </span>
+              <span *ngIf="!project?.deadline" class="text-sm text-gray-500 dark:text-gray-400">
+                {{ translate('noDeadline') }}
+              </span>
+            </div>
+            <div *ngIf="editingDeadline" class="flex gap-2 mt-1">
+              <input type="date" [(ngModel)]="deadlineInput" class="input-field text-sm">
+              <button (click)="saveDeadline()" class="btn-xs btn-success">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+              <button (click)="cancelEditDeadline()" class="btn-xs btn-danger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
         
         <div *ngIf="loading" class="py-8 flex justify-center">
@@ -99,6 +165,12 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
   projectTasks: Task[] = [];
   projectId: string | null = null;
   loading = true;
+  
+  // Päivämääräkenttien muokkaus
+  editingStartDate = false;
+  editingDeadline = false;
+  startDateInput: string | null = null;
+  deadlineInput: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -163,5 +235,79 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
 
   translate(key: string): string {
     return this.languageService.translate(key);
+  }
+
+  // Aloituspäivämäärän muokkaus
+  editStartDate(): void {
+    if (!this.project || !this.project.startDate) {
+      this.startDateInput = null;
+    } else {
+      const date = new Date(this.project.startDate);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      this.startDateInput = `${year}-${month}-${day}`;
+    }
+    this.editingStartDate = true;
+  }
+
+  saveStartDate(): void {
+    if (!this.project) return;
+    
+    let startDate: Date | null = null;
+    if (this.startDateInput) {
+      startDate = new Date(this.startDateInput);
+    }
+    
+    this.projectService.setProjectStartDate(this.project.id, startDate).subscribe(
+      updatedProject => {
+        if (updatedProject) {
+          this.project = updatedProject;
+          this.editingStartDate = false;
+        }
+      }
+    );
+  }
+
+  cancelEditStartDate(): void {
+    this.editingStartDate = false;
+    this.startDateInput = null;
+  }
+
+  // Määräajan muokkaus
+  editDeadline(): void {
+    if (!this.project || !this.project.deadline) {
+      this.deadlineInput = null;
+    } else {
+      const date = new Date(this.project.deadline);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      this.deadlineInput = `${year}-${month}-${day}`;
+    }
+    this.editingDeadline = true;
+  }
+
+  saveDeadline(): void {
+    if (!this.project) return;
+    
+    let deadline: Date | null = null;
+    if (this.deadlineInput) {
+      deadline = new Date(this.deadlineInput);
+    }
+    
+    this.projectService.setProjectDeadline(this.project.id, deadline).subscribe(
+      updatedProject => {
+        if (updatedProject) {
+          this.project = updatedProject;
+          this.editingDeadline = false;
+        }
+      }
+    );
+  }
+
+  cancelEditDeadline(): void {
+    this.editingDeadline = false;
+    this.deadlineInput = null;
   }
 } 

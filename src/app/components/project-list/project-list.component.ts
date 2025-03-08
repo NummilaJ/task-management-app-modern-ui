@@ -51,6 +51,28 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                       placeholder="{{ translate('enterProjectDescription') }}"></textarea>
           </div>
           
+          <!-- Aloituspäivämäärä -->
+          <div class="mb-4">
+            <label for="startDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ translate('startDate') }}
+            </label>
+            <input type="date" 
+                   id="startDate" 
+                   [(ngModel)]="startDateInput" 
+                   class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          </div>
+          
+          <!-- Määräaika -->
+          <div class="mb-4">
+            <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ translate('deadline') }}
+            </label>
+            <input type="date" 
+                   id="deadline" 
+                   [(ngModel)]="deadlineInput" 
+                   class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
+          </div>
+          
           <div class="flex space-x-3">
             <button (click)="createProject()" 
                     class="btn-primary">
@@ -98,18 +120,29 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                 </button>
               </div>
               
-              <p *ngIf="project.description" 
-                 class="text-gray-600 dark:text-gray-300 text-sm mb-4 line-clamp-2">
+              <p *ngIf="project.description" class="text-sm text-gray-600 dark:text-gray-300 mb-4 line-clamp-2">
                 {{ project.description }}
               </p>
-              <div class="mt-auto pt-2 flex justify-between items-center text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-600">
-                <span class="flex items-center">
+              
+              <!-- Päivämäärätiedot -->
+              <div class="mt-auto space-y-1 pt-2">
+                <div *ngIf="project.startDate" class="flex items-center text-xs text-gray-500 dark:text-gray-400">
                   <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  {{ getTaskCount(project) }} {{ translate('tasks') }}
-                </span>
+                  <span>{{ translate('startDate') }}: {{ project.startDate | date:'dd.MM.yyyy' }}</span>
+                </div>
+                
+                <div *ngIf="project.deadline" class="flex items-center text-xs text-red-500 dark:text-red-400">
+                  <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('deadline') }}: {{ project.deadline | date:'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+              
+              <div class="mt-3 pt-2 border-t border-gray-200 dark:border-gray-600 flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span>{{ project.taskIds.length || 0 }} {{ translate('tasks') }}</span>
                 <span>{{ project.createdAt | date:'dd.MM.yyyy' }}</span>
               </div>
             </div>
@@ -131,13 +164,18 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 })
 export class ProjectListComponent implements OnInit, OnDestroy {
   projects: Project[] = [];
-  newProject: Partial<Project> = { name: '', description: '' };
+  newProject: Partial<Project> = {};
   isCreatingProject = false;
   selectedProjectId: string | null = null;
   isConfirmModalOpen = false;
   projectToDelete: string | null = null;
+  
+  // Päivämääräkentät
+  startDateInput: string | null = null;
+  deadlineInput: string | null = null;
 
   private destroy$ = new Subject<void>();
+  private languageSubscription: Subscription | null = null;
 
   constructor(
     private projectService: ProjectService,
@@ -164,23 +202,42 @@ export class ProjectListComponent implements OnInit, OnDestroy {
 
   startCreatingProject(): void {
     this.isCreatingProject = true;
-    this.newProject = { name: '', description: '' };
+    this.newProject = {
+      name: '',
+      description: '',
+    };
+    this.startDateInput = null;
+    this.deadlineInput = null;
   }
 
   cancelCreatingProject(): void {
     this.isCreatingProject = false;
+    this.newProject = {};
+    this.startDateInput = null;
+    this.deadlineInput = null;
   }
 
   createProject(): void {
     if (!this.newProject.name?.trim()) {
       return;
     }
-
+    
+    // Lisää päivämäärät projektiin
+    if (this.startDateInput) {
+      this.newProject.startDate = new Date(this.startDateInput);
+    }
+    
+    if (this.deadlineInput) {
+      this.newProject.deadline = new Date(this.deadlineInput);
+    }
+    
     this.projectService.addProject(this.newProject)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.isCreatingProject = false;
         this.newProject = { name: '', description: '' };
+        this.startDateInput = null;
+        this.deadlineInput = null;
       });
   }
 

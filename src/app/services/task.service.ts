@@ -305,6 +305,33 @@ export class TaskService {
       task.scheduledDate = null;
     }
     
+    // Jos tehtävällä on projekti, tarkista sen päivämäärät
+    if (task.projectId) {
+      // Importoi projektService
+      const projectService = this.injector.get(ProjectService);
+      
+      // Hae projekti ja tarkista sen päivämäärät
+      projectService.getProjectById(task.projectId).subscribe(project => {
+        if (project) {
+          // Päivitä tehtävän määräaika projektin mukaan
+          if (project.deadline && (!task.deadline || task.deadline > project.deadline)) {
+            task.deadline = new Date(project.deadline);
+          }
+          
+          // Päivitä tehtävän aloituspäivä projektin mukaan
+          if (project.startDate && (!task.scheduledDate || task.scheduledDate < project.startDate)) {
+            task.scheduledDate = new Date(project.startDate);
+          }
+          
+          // Päivitä tehtävälista
+          const allTasks = this.tasks.getValue();
+          const updatedTasks = allTasks.map(t => t.id === task.id ? task : t);
+          this.tasks.next(updatedTasks);
+          this.saveTasks(updatedTasks);
+        }
+      });
+    }
+    
     const allTasks = this.tasks.getValue();
     const newTasks = [...allTasks, task];
     
