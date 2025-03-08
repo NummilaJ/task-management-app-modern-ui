@@ -11,6 +11,7 @@ import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
 import { ActivityLogService } from '../../services/activity-log.service';
 import { ActivityLog, ActivityType } from '../../models/activity-log.model';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-dashboard',
@@ -84,56 +85,6 @@ import { ActivityLog, ActivityType } from '../../models/activity-log.model';
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
             </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Viimeisimmät tehtävät -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg mb-6">
-        <div class="flex justify-between items-center mb-4">
-          <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ translate('recentTasks') }}</h2>
-          <a routerLink="/tasks" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">{{ translate('viewAll') }}</a>
-        </div>
-        
-        <div class="space-y-2">
-          <div *ngFor="let task of recentTasks" 
-               class="p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors">
-            <div class="flex justify-between">
-              <a [routerLink]="['/tasks', task.id]" class="font-medium text-gray-900 dark:text-white hover:text-blue-600 dark:hover:text-blue-400">
-                {{task.title}}
-              </a>
-              <div class="px-2 py-1 rounded-full text-xs"
-                [ngClass]="{
-                  'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-200': task.state === TaskState.TO_DO,
-                  'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200': task.state === TaskState.IN_PROGRESS,
-                  'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200': task.state === TaskState.DONE
-                }">
-                <ng-container [ngSwitch]="task.state">
-                  <ng-container *ngSwitchCase="TaskState.TO_DO">{{ translate('toDo') }}</ng-container>
-                  <ng-container *ngSwitchCase="TaskState.IN_PROGRESS">{{ translate('inProgress') }}</ng-container>
-                  <ng-container *ngSwitchCase="TaskState.DONE">{{ translate('done') }}</ng-container>
-                </ng-container>
-              </div>
-            </div>
-            
-            <div class="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
-              <div class="flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                {{task.createdAt | date:'d.M.yyyy'}}
-              </div>
-              <div class="flex items-center">
-                <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-                {{getUserName(task.assignee) || translate('notAssigned')}}
-              </div>
-            </div>
-          </div>
-          
-          <div *ngIf="recentTasks.length === 0" class="text-center text-gray-500 dark:text-gray-400 py-6">
-            {{ translate('noRecentTasks') }}
           </div>
         </div>
       </div>
@@ -229,12 +180,12 @@ import { ActivityLog, ActivityType } from '../../models/activity-log.model';
   `]
 })
 export class DashboardComponent implements OnInit, OnDestroy {
+  // Luokan jäsenmuuttujat
   TaskState = TaskState;
   TaskPriority = TaskPriority;
   
   stats: TaskStats | null = null;
   tasks: Task[] = [];
-  recentTasks: Task[] = [];
   users: User[] = [];
   categories: Category[] = [];
   activities: ActivityLog[] = [];
@@ -274,11 +225,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
             
             // Päivitetään tilastot käyttäjän tehtävistä
             this.calculateUserStats(tasks);
-            
-            // Viimeisimmät tehtävät (5 kpl)
-            this.recentTasks = [...tasks]
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-              .slice(0, 5);
           });
         }
       })
