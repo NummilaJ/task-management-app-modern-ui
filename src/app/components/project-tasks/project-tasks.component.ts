@@ -31,7 +31,7 @@ import { LanguageService } from '../../services/language.service';
             </h2>
           </div>
           
-          <a routerLink="/create" 
+          <a [routerLink]="['/create']" [queryParams]="{projectId: projectId}" 
              class="btn-primary flex items-center gap-2 transform hover:scale-105">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -71,7 +71,7 @@ import { LanguageService } from '../../services/language.service';
             </svg>
             <p class="text-gray-500 dark:text-gray-400 mb-4">{{ translate('noTasksInProject') }}</p>
             <div class="flex justify-center">
-              <a routerLink="/create" class="btn-primary flex items-center gap-2">
+              <a [routerLink]="['/create']" [queryParams]="{projectId: projectId}" class="btn-primary flex items-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -85,6 +85,7 @@ import { LanguageService } from '../../services/language.service';
             [tasks]="projectTasks" 
             (taskChanged)="onTaskChange()"
             [showProjectColumn]="false"
+            [hideTaskForm]="true"
           ></app-task-list>
         </div>
       </div>

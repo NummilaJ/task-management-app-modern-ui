@@ -553,6 +553,18 @@ export class LanguageService {
       en: 'All Projects',
       fi: 'Kaikki projektit'
     },
+    activeProjects: {
+      en: 'Active Projects',
+      fi: 'Aktiiviset projektit'
+    },
+    viewAllProjects: {
+      en: 'View all projects',
+      fi: 'Näytä kaikki projektit'
+    },
+    viewDetails: {
+      en: 'View details',
+      fi: 'Näytä tiedot'
+    },
     confirmDeleteProject: {
       en: 'Are you sure you want to delete this project? Tasks will remain but will no longer be associated with this project.',
       fi: 'Haluatko varmasti poistaa tämän projektin? Tehtävät säilyvät, mutta niitä ei enää liitetä tähän projektiin.'

@@ -5,8 +5,10 @@ import { TaskService, TaskStats } from '../../services/task.service';
 import { CategoryService } from '../../services/category.service';
 import { AuthService } from '../../services/auth.service';
 import { LanguageService } from '../../services/language.service';
+import { ProjectService } from '../../services/project.service';
 import { Task, TaskState, TaskPriority } from '../../models/task.model';
 import { Category } from '../../models/category.model';
+import { Project } from '../../models/project.model';
 import { User } from '../../models/user.model';
 import { Subscription } from 'rxjs';
 import { ActivityLogService } from '../../services/activity-log.service';
@@ -84,6 +86,47 @@ import { v4 as uuidv4 } from 'uuid';
               <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
               </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projektitiivistelmä -->
+      <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ translate('activeProjects') }}</h2>
+          <a routerLink="/projects" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+            {{ translate('viewAllProjects') }}
+          </a>
+        </div>
+        
+        <div *ngIf="projects.length === 0" class="p-4 text-center text-gray-500 dark:text-gray-400">
+          {{ translate('noProjects') }}
+        </div>
+        
+        <div *ngIf="projects.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div *ngFor="let project of getRecentProjects()" 
+               class="bg-gray-50 dark:bg-gray-700/50 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all relative">
+            <div class="h-2" [style.backgroundColor]="project.color"></div>
+            <div class="p-4">
+              <div class="flex items-start justify-between">
+                <h3 class="font-semibold text-gray-900 dark:text-white">{{ project.name }}</h3>
+                <span class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-medium px-2 py-1 rounded-full">
+                  {{ getProjectTaskCount(project) }} {{ translate('tasks') }}
+                </span>
+              </div>
+              <p *ngIf="project.description" class="mt-2 text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                {{ project.description }}
+              </p>
+              <div class="mt-3 flex justify-between items-center text-xs">
+                <span class="text-gray-500 dark:text-gray-400">
+                  {{ translate('created') }}: {{ project.createdAt | date:'dd.MM.yyyy' }}
+                </span>
+                <a [routerLink]="['/projects', project.id]" 
+                   class="text-blue-600 dark:text-blue-400 hover:underline">
+                  {{ translate('viewDetails') }} →
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -189,6 +232,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   users: User[] = [];
   categories: Category[] = [];
   activities: ActivityLog[] = [];
+  projects: Project[] = [];
   
   // Rajataan näytettävät aktiviteetit
   visibleActivitiesCount: number = 4;
@@ -203,13 +247,38 @@ export class DashboardComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private authService: AuthService,
     private languageService: LanguageService,
-    private activityLogService: ActivityLogService
+    private activityLogService: ActivityLogService,
+    private projectService: ProjectService
   ) {}
   
   ngOnInit() {
+    // Tehtävien tilastot
     this.subscriptions.push(
       this.taskService.getStats().subscribe(stats => {
         this.stats = stats;
+      })
+    );
+
+    // Tehtävät
+    this.subscriptions.push(
+      this.taskService.getTasks().subscribe(tasks => {
+        this.tasks = tasks;
+        // Lasketaan käyttäjätilastot
+        this.calculateUserStats(tasks);
+      })
+    );
+
+    // Projektit
+    this.subscriptions.push(
+      this.projectService.getProjects().subscribe(projects => {
+        this.projects = projects;
+      })
+    );
+
+    // Kategoriat
+    this.subscriptions.push(
+      this.categoryService.getCategories().subscribe(categories => {
+        this.categories = categories;
       })
     );
     
@@ -227,13 +296,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.calculateUserStats(tasks);
           });
         }
-      })
-    );
-    
-    // Ladataan kategoriat
-    this.subscriptions.push(
-      this.categoryService.getCategories().subscribe(categories => {
-        this.categories = categories;
       })
     );
     
@@ -409,5 +471,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Vaihtaa aktiviteettien näkymää
   toggleActivitiesView(): void {
     this.showAllActivities = !this.showAllActivities;
+  }
+
+  getRecentProjects(): Project[] {
+    return this.projects.slice(-3);
+  }
+
+  getProjectTaskCount(project: Project): number {
+    return project.taskIds.length;
   }
 } 

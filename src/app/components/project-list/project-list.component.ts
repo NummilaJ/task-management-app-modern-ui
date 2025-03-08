@@ -6,11 +6,12 @@ import { Subject, takeUntil, Subscription } from 'rxjs';
 import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project.model';
 import { LanguageService } from '../../services/language.service';
+import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-project-list',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmModalComponent],
   template: `
     <div class="space-y-6">
       <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
@@ -115,6 +116,15 @@ import { LanguageService } from '../../services/language.service';
           </div>
         </div>
       </div>
+      
+      <!-- Vahvistusmodaali projektin poistamiseen -->
+      <app-confirm-modal
+        [isOpen]="isConfirmModalOpen"
+        [title]="translate('deleteProject')"
+        [message]="translate('confirmDeleteProject')"
+        (confirm)="confirmDeleteProject()"
+        (cancel)="cancelDeleteProject()">
+      </app-confirm-modal>
     </div>
   `,
   styleUrls: ['./project-list.component.scss']
@@ -124,6 +134,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   newProject: Partial<Project> = { name: '', description: '' };
   isCreatingProject = false;
   selectedProjectId: string | null = null;
+  isConfirmModalOpen = false;
+  projectToDelete: string | null = null;
 
   private destroy$ = new Subject<void>();
 
@@ -179,11 +191,23 @@ export class ProjectListComponent implements OnInit, OnDestroy {
 
   deleteProject(event: Event, projectId: string): void {
     event.stopPropagation();
-    if (confirm(this.translate('confirmDeleteProject'))) {
-      this.projectService.deleteProject(projectId)
+    this.projectToDelete = projectId;
+    this.isConfirmModalOpen = true;
+  }
+
+  confirmDeleteProject(): void {
+    if (this.projectToDelete) {
+      this.projectService.deleteProject(this.projectToDelete)
         .pipe(takeUntil(this.destroy$))
         .subscribe();
+      this.projectToDelete = null;
     }
+    this.isConfirmModalOpen = false;
+  }
+
+  cancelDeleteProject(): void {
+    this.isConfirmModalOpen = false;
+    this.projectToDelete = null;
   }
 
   getTaskCount(project: Project): number {

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Injector } from '@angular/core';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { map, tap } from 'rxjs/operators';
 import { Task, TaskState, TaskPriority, Subtask } from '../models/task.model';
@@ -6,6 +6,7 @@ import { Comment } from '../models/comment.model';
 import { v4 as uuidv4 } from 'uuid';
 import { ActivityLogService } from './activity-log.service';
 import { ActivityType } from '../models/activity-log.model';
+import { ProjectService } from './project.service';
 
 export interface TaskStats {
   total: number;
@@ -36,7 +37,8 @@ export class TaskService {
   private readonly STORAGE_KEY = 'tasks';
 
   constructor(
-    private activityLogService: ActivityLogService
+    private activityLogService: ActivityLogService,
+    private injector: Injector
   ) {
     this.loadTasks();
   }
@@ -282,6 +284,13 @@ export class TaskService {
       task.title
     );
     
+    // Päivitetään projektiobjektin taskIds-lista, jos tehtävällä on projekti
+    if (task.projectId) {
+      // Importoi ja kutsu ProjectService:n addTaskToProject metodia
+      const projectService = this.injector.get(ProjectService);
+      projectService.addTaskToProject(task.projectId, task.id).subscribe();
+    }
+    
     return of(task);
   }
 
@@ -289,14 +298,14 @@ export class TaskService {
     console.log(`Updating task: ${task.id}, ${task.title}`);
     // Haetaan kaikki tehtävät
     const allTasks = this.tasks.getValue();
-    
-    // Etsitään päivitettävä tehtävä ID:n perusteella - käytä string-vertailua
+
+    // Etsi tehtävän indeksi
     const existingTaskIndex = allTasks.findIndex(t => String(t.id) === String(task.id));
     
-    // Jos tehtävää ei löydy, ilmoita ja palauta alkuperäinen
+    // Jos tehtävää ei löydy, ilmoita ja palauta null
     if (existingTaskIndex === -1) {
       console.error(`Task with id ${task.id} not found`);
-      return of(task);
+      return of(null as any);
     }
     
     console.log(`Found task at index: ${existingTaskIndex}`);
@@ -349,18 +358,38 @@ export class TaskService {
       priority: taskPriority,
       category: task.category,
       projectId: task.projectId,
-      createdAt: task.createdAt instanceof Date ? task.createdAt : new Date(task.createdAt),
+      createdAt: new Date(task.createdAt).toISOString(),
       createdBy: task.createdBy,
-      progress: task.progress,
+      progress: task.progress || 0,
       subtasks: task.subtasks || [],
       comments: task.comments || []
     }));
     
-    // Luo uusi tehtävälista, jossa vanha tehtävä on korvattu päivitetyllä
-    const updatedTasks = [...allTasks];
-    updatedTasks[existingTaskIndex] = updatedTask;
+    // Käsittele projektiyhteyden muutos
+    const projectService = this.injector.get(ProjectService);
+    
+    // Jos projekti on vaihtunut, päivitä projektien taskIds-taulukot
+    if (oldTask.projectId !== updatedTask.projectId) {
+      console.log(`Project changed from ${oldTask.projectId} to ${updatedTask.projectId}`);
+      
+      // Jos vanha projekti oli olemassa, poista tehtävä sieltä
+      if (oldTask.projectId) {
+        projectService.removeTaskFromProject(oldTask.projectId, task.id).subscribe();
+      }
+      
+      // Jos uusi projekti on olemassa, lisää tehtävä sinne
+      if (updatedTask.projectId) {
+        projectService.addTaskToProject(updatedTask.projectId, task.id).subscribe();
+      }
+    }
+    
+    // Korvaa vanha tehtävä päivitetyllä
+    const updatedTasks = allTasks.map(t => 
+      String(t.id) === String(task.id) ? updatedTask : t
+    );
     
     // Tallenna päivitetty lista
+    this.tasks.next(updatedTasks);
     this.saveTasks(updatedTasks);
     
     console.log(`Task updated successfully`);
@@ -451,6 +480,7 @@ export class TaskService {
     );
     
     // Tallenna päivitetty lista
+    this.tasks.next(updatedTasks);
     this.saveTasks(updatedTasks);
     
     // Lisää aktiviteettiloki tilan muutoksesta
@@ -475,21 +505,43 @@ export class TaskService {
   }
 
   deleteTask(id: string): Observable<void> {
+    console.log(`Deleting task: ${id}`);
+    
+    // Haetaan kaikki tehtävät
     const allTasks = this.tasks.getValue();
-    const task = allTasks.find(t => t.id === id);
-    const newTasks = allTasks.filter(t => t.id !== id);
     
-    this.saveTasks(newTasks);
-    this.tasks.next(newTasks);
+    // Etsi poistettava tehtävä
+    const taskToDelete = allTasks.find(t => String(t.id) === String(id));
     
-    if (task) {
-      // Lisää aktiviteettiloki tehtävän poistosta
-      this.activityLogService.addActivity(
-        ActivityType.TASK_DELETED,
-        task.id,
-        task.title
-      );
+    // Jos tehtävää ei löydy, ilmoita ja palauta
+    if (!taskToDelete) {
+      console.error(`Task with id ${id} not found for deletion`);
+      return of(undefined);
     }
+    
+    // Jos tehtävä kuuluu projektiin, poista se projektin taskIds-taulukosta
+    if (taskToDelete.projectId) {
+      const projectService = this.injector.get(ProjectService);
+      projectService.removeTaskFromProject(taskToDelete.projectId, id).subscribe();
+    }
+    
+    // Poista tehtävä listasta
+    const updatedTasks = allTasks.filter(t => String(t.id) !== String(id));
+    
+    // Tallenna päivitetty lista
+    this.tasks.next(updatedTasks);
+    this.saveTasks(updatedTasks);
+    
+    // Kirjaa aktiviteetti
+    this.activityLogService.addActivity({
+      type: ActivityType.TASK_DELETED,
+      timestamp: new Date(),
+      userId: 'system',
+      details: {
+        taskId: id,
+        taskTitle: taskToDelete.title
+      }
+    });
     
     return of(undefined);
   }
