@@ -105,6 +105,7 @@ export class TaskService {
           state: taskState, // Käytä oikein konvertoitua enumeraatioarvoa
           priority: taskPriority, // Käytä oikein konvertoitua enumeraatioarvoa
           category: parsedTask.category ? String(parsedTask.category) : null, // Varmista, että category on string tai null
+          projectId: parsedTask.projectId ? String(parsedTask.projectId) : null, // Varmista, että projectId on string tai null
           createdAt: new Date(parsedTask.createdAt),
           createdBy: parsedTask.createdBy ? String(parsedTask.createdBy) : null, // Varmista, että createdBy on string tai null
           progress: parsedTask.progress,
@@ -193,6 +194,7 @@ export class TaskService {
         state: taskState, // Käytä varmistettua enumeraatioarvoa
         priority: taskPriority, // Käytä varmistettua enumeraatioarvoa
         category: task.category ? String(task.category) : null, // Varmista, että category on string tai null
+        projectId: task.projectId ? String(task.projectId) : null, // Varmista, että projectId on string tai null
         createdAt: task.createdAt,
         createdBy: task.createdBy ? String(task.createdBy) : null, // Varmista, että createdBy on string tai null
         progress: task.progress,
@@ -346,6 +348,7 @@ export class TaskService {
       state: taskState,
       priority: taskPriority,
       category: task.category,
+      projectId: task.projectId,
       createdAt: task.createdAt instanceof Date ? task.createdAt : new Date(task.createdAt),
       createdBy: task.createdBy,
       progress: task.progress,
@@ -478,10 +481,9 @@ export class TaskService {
     
     this.saveTasks(newTasks);
     this.tasks.next(newTasks);
-    this.updateStats(newTasks);
     
-    // Lisätään aktiviteettiloki
     if (task) {
+      // Lisää aktiviteettiloki tehtävän poistosta
       this.activityLogService.addActivity(
         ActivityType.TASK_DELETED,
         task.id,
@@ -489,7 +491,7 @@ export class TaskService {
       );
     }
     
-    return of(void 0);
+    return of(undefined);
   }
 
   exportTasks(): string {
@@ -668,5 +670,19 @@ export class TaskService {
     
     // Käytä olemassa olevaa completeSubtask metodia
     return this.completeSubtask(taskId, subtaskId, newCompleted);
+  }
+
+  getTaskById(id: string): Observable<Task | null> {
+    console.log(`Etsitään tehtävää ID:llä: ${id}`);
+    const allTasks = this.tasks.getValue();
+    const task = allTasks.find(t => String(t.id) === String(id));
+    
+    if (!task) {
+      console.warn(`Tehtävää ID:llä ${id} ei löytynyt`);
+      return of(null);
+    }
+    
+    console.log(`Tehtävä löytyi:`, task);
+    return of(task);
   }
 } 

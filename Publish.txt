@@ -1,0 +1,1 @@
+npx angular-cli-ghpages --dir=dist/task-management-app

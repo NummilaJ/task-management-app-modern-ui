@@ -1,0 +1,98 @@
+<div class="project-tasks-container">
+  <div class="header">
+    <button class="btn btn-secondary back-button" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Takaisin projekteihin
+    </button>
+    
+    <h2 *ngIf="project" [style.color]="project.color">
+      {{ project.name }} - Tehtävät
+    </h2>
+    
+    <div class="spacer"></div>
+  </div>
+  
+  <div class="description" *ngIf="project && project.description">
+    <p>{{ project.description }}</p>
+  </div>
+  
+  <div class="project-stats" *ngIf="project">
+    <div class="stat">
+      <span class="label">Tehtäviä:</span>
+      <span class="value">{{ projectTasks.length }}</span>
+    </div>
+    <div class="stat">
+      <span class="label">Luotu:</span>
+      <span class="value">{{ project.createdAt | date:'dd.MM.yyyy' }}</span>
+    </div>
+  </div>
+  
+  <div class="content" *ngIf="!loading">
+    <div class="tasks-section">
+      <h3>Projektin tehtävät</h3>
+      
+      <div *ngIf="projectTasks.length === 0" class="no-tasks">
+        <p>Tähän projektiin ei ole vielä liitetty tehtäviä.</p>
+        <button class="btn btn-primary" routerLink="/tasks/new">
+          <i class="fas fa-plus"></i> Luo uusi tehtävä
+        </button>
+      </div>
+      
+      <app-task-list 
+        *ngIf="projectTasks.length > 0"
+        [tasks]="projectTasks" 
+        (taskChanged)="onTaskChange()"
+        [showProjectColumn]="false"
+      ></app-task-list>
+    </div>
+    
+    <div class="tasks-to-add-section">
+      <h3>Lisää tehtäviä projektiin</h3>
+      
+      <div *ngIf="tasks.length === 0" class="no-tasks">
+        <p>Ei saatavilla olevia tehtäviä.</p>
+      </div>
+      
+      <div *ngIf="tasks.length > 0" class="available-tasks">
+        <div *ngFor="let task of tasks" class="task-card" 
+             [class.disabled]="task.projectId === projectId">
+          <div class="task-header">
+            <h4>{{ task.title }}</h4>
+            
+            <div class="actions">
+              <button 
+                class="btn btn-sm btn-primary" 
+                *ngIf="task.projectId !== projectId"
+                (click)="addTaskToProject(task)">
+                <i class="fas fa-plus"></i> Lisää projektiin
+              </button>
+              
+              <button 
+                class="btn btn-sm btn-danger" 
+                *ngIf="task.projectId === projectId"
+                (click)="removeTaskFromProject(task.id)">
+                <i class="fas fa-minus"></i> Poista projektista
+              </button>
+            </div>
+          </div>
+          
+          <p class="task-description" *ngIf="task.description">
+            {{ task.description }}
+          </p>
+          
+          <div class="task-meta">
+            <span class="priority" [ngClass]="'priority-' + task.priority.toLowerCase()">
+              {{ task.priority }}
+            </span>
+            <span class="state" [ngClass]="'state-' + task.state.toLowerCase()">
+              {{ task.state }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="loading" *ngIf="loading">
+    <p>Ladataan projektin tietoja...</p>
+  </div>
+</div> 

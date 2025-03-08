@@ -1,12 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { CategoryService } from '../../services/category.service';
 import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { Task, TaskState, TaskPriority } from '../../models/task.model';
 import { Category } from '../../models/category.model';
+import { Project } from '../../models/project.model';
 import { User } from '../../models/user.model';
 import { LanguageService } from '../../services/language.service';
 import { Subscription } from 'rxjs';
@@ -61,30 +63,31 @@ import { Subscription } from 'rxjs';
           </div>
 
           <!-- Priority -->
-          <div>
+          <div class="col-span-1">
             <label for="priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('priority') }}</label>
             <select id="priority" name="priority" [(ngModel)]="newTask.priority"
                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
-              <option *ngFor="let priority of taskPriorities" [ngValue]="priority">
-                <ng-container [ngSwitch]="priority">
-                  <ng-container *ngSwitchCase="'LOW'">{{ translate('low') }}</ng-container>
-                  <ng-container *ngSwitchCase="'MEDIUM'">{{ translate('medium') }}</ng-container>
-                  <ng-container *ngSwitchCase="'HIGH'">{{ translate('high') }}</ng-container>
-                  <ng-container *ngSwitchDefault>{{priority}}</ng-container>
-                </ng-container>
-              </option>
+              <option *ngFor="let priority of taskPriorities" [value]="priority">{{ priority }}</option>
             </select>
           </div>
 
           <!-- Category -->
-          <div>
+          <div class="col-span-1">
             <label for="category" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('category') }}</label>
             <select id="category" name="category" [(ngModel)]="newTask.category"
                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
-              <option [ngValue]="null">{{ translate('noCategory') }}</option>
-              <option *ngFor="let category of categories" [ngValue]="category.id">
-                {{category.name}}
-              </option>
+              <option [value]="null">{{ translate('noCategory') }}</option>
+              <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
+            </select>
+          </div>
+          
+          <!-- Project -->
+          <div class="col-span-1">
+            <label for="project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
+            <select id="project" name="project" [(ngModel)]="newTask.projectId"
+                    class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
+              <option [value]="null">{{ translate('noProject') }}</option>
+              <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
             </select>
           </div>
 
@@ -105,8 +108,13 @@ import { Subscription } from 'rxjs';
   `]
 })
 export class TaskListComponent implements OnInit, OnDestroy {
+  @Input() tasks: Task[] = [];
+  @Input() showProjectColumn: boolean = true;
+  @Output() taskChanged = new EventEmitter<void>();
+  
   categories: Category[] = [];
   users: User[] = [];
+  projects: Project[] = [];
   taskPriorities = Object.values(TaskPriority);
   private languageSubscription: Subscription | null = null;
 
@@ -117,6 +125,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
     assignee: null,
     priority: TaskPriority.MEDIUM,
     category: null,
+    projectId: null,
     createdAt: new Date(),
     createdBy: null,
     subtasks: [],
@@ -131,12 +140,14 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private categoryService: CategoryService,
     private authService: AuthService,
+    private projectService: ProjectService,
     private languageService: LanguageService
   ) {}
 
   ngOnInit() {
     this.loadCategories();
     this.loadUsers();
+    this.loadProjects();
     this.getCurrentUser();
     
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
@@ -172,6 +183,18 @@ export class TaskListComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadProjects() {
+    this.projectService.getProjects().subscribe(projects => {
+      this.projects = projects;
+    });
+  }
+  
+  getProjectName(projectId: string | null): string {
+    if (!projectId) return this.translate('noProject');
+    const project = this.projects.find(p => p.id === projectId);
+    return project ? project.name : this.translate('noProject');
+  }
+
   createTask() {
     if (this.newTask.title && this.newTask.priority) {
       this.newTask.createdBy = this.currentUser?.id || null;
@@ -189,6 +212,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
       state: TaskState.TO_DO,
       priority: TaskPriority.MEDIUM,
       category: null,
+      projectId: null,
       createdAt: new Date(),
       createdBy: null,
       subtasks: [],

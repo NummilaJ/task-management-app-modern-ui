@@ -5,8 +5,10 @@ import { DragDropModule, CdkDragDrop, transferArrayItem } from '@angular/cdk/dra
 import { TaskService } from '../../services/task.service';
 import { CategoryService } from '../../services/category.service';
 import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { Task, TaskState, TaskPriority } from '../../models/task.model';
 import { Category } from '../../models/category.model';
+import { Project } from '../../models/project.model';
 import { User } from '../../models/user.model';
 import { TaskModalComponent } from '../task-modal/task-modal.component';
 import { TaskFiltersComponent, FilterOptions } from '../shared/task-filters/task-filters.component';
@@ -53,9 +55,11 @@ import { Subscription } from 'rxjs';
         <app-task-filters
           [showStateFilter]="false"
           [categories]="categories"
+          [projects]="projects"
           [taskPriorities]="taskPriorities"
           [selectedPriority]="selectedPriority ? [selectedPriority] : []"
           [selectedCategory]="selectedCategory"
+          [selectedProject]="selectedProject"
           [selectedAssigneeFilter]="selectedAssigneeFilter"
           [sortBy]="'createdAt'"
           [sortDirection]="true"
@@ -351,6 +355,7 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   doneTasks: Task[] = [];
   
   categories: Category[] = [];
+  projects: Project[] = [];
   users: User[] = [];
   currentUser: User | null = null;
   
@@ -359,6 +364,7 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   
   selectedPriority: TaskPriority | null = null;
   selectedCategory: string | null = null;
+  selectedProject: string | null = null;
   selectedAssigneeFilter: string | null = null;
   
   TaskState = TaskState;
@@ -371,12 +377,14 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private categoryService: CategoryService,
     private authService: AuthService,
+    private projectService: ProjectService,
     private languageService: LanguageService
   ) {}
   
   ngOnInit() {
     this.loadTasks();
     this.loadCategories();
+    this.loadProjects();
     this.loadUsers();
     this.getCurrentUser();
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
@@ -408,6 +416,12 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     });
   }
   
+  loadProjects() {
+    this.projectService.getProjects().subscribe(projects => {
+      this.projects = projects;
+    });
+  }
+  
   loadUsers() {
     this.authService.getAllUsers().subscribe(users => {
       this.users = users;
@@ -433,6 +447,12 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     if (this.selectedCategory) {
       filtered = filtered.filter((task: Task) => task.category === this.selectedCategory);
     }
+    
+    // Projekti-suodatus
+    if (this.selectedProject) {
+      filtered = filtered.filter((task: Task) => task.projectId === this.selectedProject);
+    }
+    // Huom: Kun selectedProject === null, näytetään kaikki tehtävät, mitään suodatusta ei tehdä projektin perusteella
 
     // Käyttäjän tehtävien suodatus
     if (this.selectedAssigneeFilter && this.currentUser) {
@@ -476,7 +496,12 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   
   getCategoryById(categoryId: string | null): Category | undefined {
     if (!categoryId) return undefined;
-    return this.categories.find(c => c.id === categoryId);
+    return this.categories.find(cat => cat.id === categoryId);
+  }
+  
+  getProjectById(projectId: string | null): Project | undefined {
+    if (!projectId) return undefined;
+    return this.projects.find(proj => proj.id === projectId);
   }
   
   getUserName(userId: string | null): string | null {
@@ -505,11 +530,15 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   }
 
   handleFiltersChanged(filters: FilterOptions) {
+    // Filtterit saatu task-filters-komponentilta
     this.selectedPriority = filters.priority && filters.priority.length > 0 
-      ? filters.priority[0] as TaskPriority 
+      ? filters.priority[0] 
       : null;
-    this.selectedCategory = filters.category ?? null;
-    this.selectedAssigneeFilter = filters.assigneeFilter ?? null;
+      
+    // Käsitellään null-arvot oikein
+    this.selectedCategory = filters.category !== undefined ? filters.category : null;
+    this.selectedProject = filters.project !== undefined ? filters.project : null;
+    this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
     
     this.applyFilters();
   }

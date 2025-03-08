@@ -16,6 +16,7 @@ export interface Task {
   state: TaskState;
   priority: TaskPriority;
   category: string | null;
+  projectId: string | null;
   createdAt: Date;
   createdBy: string | null;
   subtasks: Subtask[];

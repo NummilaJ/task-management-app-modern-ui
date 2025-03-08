@@ -3,8 +3,10 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Task, TaskState, TaskPriority, Subtask } from '../../models/task.model';
 import { Category } from '../../models/category.model';
+import { Project } from '../../models/project.model';
 import { TaskService } from '../../services/task.service';
 import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { User } from '../../models/user.model';
 import { Comment } from '../../models/comment.model';
 import { TaskCommentsComponent } from '../task-comments/task-comments.component';
@@ -177,7 +179,38 @@ import { LanguageService } from '../../services/language.service';
                            class="inline-flex items-center px-2 py-1 rounded-full text-xs text-white">
                         {{category.name}}
                       </div>
-                      <span *ngIf="!task.category" class="text-sm text-gray-500 dark:text-gray-400">{{ translate('noCategory') }}</span>
+                      <span *ngIf="!task.category" class="text-sm text-gray-500 dark:text-gray-400">
+                        {{ translate('noCategory') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Projekti -->
+                <div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">Projekti</span>
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                    </svg>
+                    <select *ngIf="isEditing && editedTask"
+                            [(ngModel)]="editedTask.projectId"
+                            class="input-field text-sm">
+                      <option value="">Ei projektia</option>
+                      <option *ngFor="let project of projects"
+                              [value]="project.id">
+                        {{project.name}}
+                      </option>
+                    </select>
+                    <div *ngIf="!isEditing">
+                      <div *ngIf="task.projectId && getProject(task.projectId) as project"
+                           class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs text-white"
+                           [style.backgroundColor]="project.color">
+                        {{project.name}}
+                      </div>
+                      <span *ngIf="!task.projectId" class="text-sm text-gray-500 dark:text-gray-400">
+                        Ei projektia
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -382,24 +415,41 @@ export class TaskModalComponent implements OnInit {
   showSubtaskForm = false;
   newSubtaskTitle = '';
   users: User[] = [];
+  projects: Project[] = [];
   isConfirmModalOpen = false;
   subtaskToDelete: Subtask | null = null;
 
   constructor(
     private taskService: TaskService,
     private authService: AuthService,
+    private projectService: ProjectService,
     private languageService: LanguageService
   ) {}
 
   ngOnInit() {
-    // Haetaan käyttäjät
+    this.loadUsers();
+    this.loadProjects();
+  }
+
+  loadUsers() {
     this.authService.getAllUsers().subscribe(users => {
       this.users = users;
     });
   }
 
+  loadProjects() {
+    this.projectService.getProjects().subscribe(projects => {
+      this.projects = projects;
+    });
+  }
+
   getCategory(categoryId: string): Category | undefined {
     return this.categories.find(c => c.id === categoryId);
+  }
+
+  getProject(projectId: string | null): Project | undefined {
+    if (!projectId) return undefined;
+    return this.projects.find(p => p.id === projectId);
   }
 
   getAssigneeName(userId: string | null): string | null {

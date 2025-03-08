@@ -9,6 +9,8 @@ import { AuthGuard } from './guards/auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 import { KanbanViewComponent } from './components/kanban-view/kanban-view.component';
 import { DashboardComponent } from './components/dashboard/dashboard.component';
+import { ProjectListComponent } from './components/project-list/project-list.component';
+import { ProjectTasksComponent } from './components/project-tasks/project-tasks.component';
 
 export const routes: Routes = [
   { 
@@ -39,6 +41,18 @@ export const routes: Routes = [
     path: 'kanban',
     component: KanbanViewComponent,
     title: 'Task Management - Kanban Board',
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'projects',
+    component: ProjectListComponent,
+    title: 'Task Management - Projects',
+    canActivate: [AuthGuard]
+  },
+  {
+    path: 'projects/:id',
+    component: ProjectTasksComponent,
+    title: 'Task Management - Project Tasks',
     canActivate: [AuthGuard]
   },
   {

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskState, TaskPriority } from '../../../models/task.model';
 import { Category } from '../../../models/category.model';
+import { Project } from '../../../models/project.model';
 import { LanguageService } from '../../../services/language.service';
 import { Subscription } from 'rxjs';
 
@@ -10,6 +11,7 @@ export interface FilterOptions {
   state?: TaskState[] | null;
   priority?: TaskPriority[] | null;
   category?: string | null;
+  project?: string | null;
   assigneeFilter?: string | null;
   sortBy?: string;
   sortDirection?: boolean;
@@ -65,13 +67,25 @@ export interface FilterOptions {
         <!-- Category Filter -->
         <div class="space-y-2">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('category') }}</label>
-          <select [(ngModel)]="selectedCategory"
+          <select [(ngModel)]="selectedCategory" 
                   (change)="applyFilters()"
-                  class="filter-select">
+                  class="mt-1 w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
             <option [ngValue]="null">{{ translate('allCategories') }}</option>
-            <option *ngFor="let category of categories" 
-                    [ngValue]="category.id">
-              {{category.name}}
+            <option *ngFor="let cat of categories" [ngValue]="cat.id">
+              {{ cat.name }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- Project Filter -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
+          <select [(ngModel)]="selectedProject" 
+                  (change)="applyFilters()"
+                  class="mt-1 w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+            <option [ngValue]="null">{{ translate('allProjects') }}</option>
+            <option *ngFor="let project of projects" [ngValue]="project.id">
+              {{ project.name }}
             </option>
           </select>
         </div>
@@ -133,13 +147,15 @@ export interface FilterOptions {
 })
 export class TaskFiltersComponent implements OnInit, OnDestroy {
   @Input() showStateFilter: boolean = true;
-  @Input() categories: Category[] = [];
   @Input() taskStates = Object.values(TaskState);
   @Input() taskPriorities = Object.values(TaskPriority);
+  @Input() categories: Category[] = [];
+  @Input() projects: Project[] = [];
 
   @Input() selectedState: TaskState[] = [];
   @Input() selectedPriority: TaskPriority[] = [];
   @Input() selectedCategory: string | null = null;
+  @Input() selectedProject: string | null = null;
   @Input() selectedAssigneeFilter: string | null = null;
   @Input() sortBy: string = 'createdAt';
   @Input() sortDirection: boolean = true;
@@ -173,6 +189,7 @@ export class TaskFiltersComponent implements OnInit, OnDestroy {
       state: this.selectedState,
       priority: this.selectedPriority,
       category: this.selectedCategory,
+      project: this.selectedProject,
       assigneeFilter: this.selectedAssigneeFilter,
       sortBy: this.sortBy,
       sortDirection: this.sortDirection
@@ -188,6 +205,7 @@ export class TaskFiltersComponent implements OnInit, OnDestroy {
     this.selectedState = [];
     this.selectedPriority = [];
     this.selectedCategory = null;
+    this.selectedProject = null;
     this.selectedAssigneeFilter = null;
     this.sortBy = 'createdAt';
     this.sortDirection = true;

@@ -78,6 +78,18 @@ import { ThemeService } from './services/theme.service';
               </a>
             </li>
             <li>
+              <a routerLink="/projects" 
+                routerLinkActive="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
+                class="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors">
+                <div class="flex items-center">
+                  <svg class="w-5 h-5 mr-3 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
+                  </svg>
+                  Projektit
+                </div>
+              </a>
+            </li>
+            <li>
               <a routerLink="/categories" 
                 routerLinkActive="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
                 class="block p-3 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-200 transition-colors">

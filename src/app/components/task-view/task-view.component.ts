@@ -1,12 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterModule } from '@angular/router';
+import { RouterModule, ActivatedRoute } from '@angular/router';
 import { TaskService } from '../../services/task.service';
 import { CategoryService } from '../../services/category.service';
 import { AuthService } from '../../services/auth.service';
+import { ProjectService } from '../../services/project.service';
 import { Task, TaskState, TaskPriority } from '../../models/task.model';
 import { Category } from '../../models/category.model';
+import { Project } from '../../models/project.model';
 import { User } from '../../models/user.model';
 import { TaskModalComponent } from '../task-modal/task-modal.component';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
@@ -45,11 +47,13 @@ import { LanguageService } from '../../services/language.service';
 
         <app-task-filters
           [categories]="categories"
+          [projects]="projects"
           [taskStates]="taskStates"
           [taskPriorities]="taskPriorities"
           [selectedState]="selectedStates"
           [selectedPriority]="selectedPriorities"
           [selectedCategory]="selectedCategory"
+          [selectedProject]="selectedProject"
           [selectedAssigneeFilter]="selectedAssigneeFilter"
           [sortBy]="sortBy"
           [sortDirection]="sortDirection"
@@ -128,6 +132,21 @@ import { LanguageService } from '../../services/language.service';
                   </ng-container>
                   <span *ngIf="!task.category" class="text-sm text-gray-500">
                     {{ translate('noCategory') }}
+                  </span>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center space-x-2">
+                  <ng-container *ngIf="task.projectId">
+                    <div *ngIf="getProjectById(task.projectId) as project"
+                         [style.backgroundColor]="project.color"
+                         class="w-3 h-3 rounded-full"></div>
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {{getProjectById(task.projectId)?.name}}
+                    </span>
+                  </ng-container>
+                  <span *ngIf="!task.projectId" class="text-sm text-gray-500">
+                    {{ translate('noProject') }}
                   </span>
                 </div>
               </td>
@@ -281,6 +300,8 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   isConfirmModalOpen = false;
   taskToDelete: Task | null = null;
   currentUser: User | null = null;
+  projects: Project[] = [];
+  selectedProject: string | null = null;
 
   sortBy = 'createdAt';
   sortDirection = true; // true = nouseva, false = laskeva
@@ -302,6 +323,7 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     { label: 'Priority', value: 'priority' },
     { label: 'Status', value: 'state' },
     { label: 'Category', value: 'category' },
+    { label: 'Project', value: 'project' },
     { label: 'Assignee', value: 'assignee' },
     { label: 'Progress', value: 'progress' },
     { label: 'Created', value: 'createdAt' },
@@ -316,7 +338,9 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     private taskService: TaskService,
     private categoryService: CategoryService,
     private authService: AuthService,
-    private languageService: LanguageService
+    private projectService: ProjectService,
+    private languageService: LanguageService,
+    private route: ActivatedRoute
   ) {}
   
   ngOnInit() {
@@ -324,6 +348,22 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     this.loadCategories();
     this.loadUsers();
     this.getCurrentUser();
+    this.loadProjects();
+    
+    // Kuuntele URL-parametreja mahdollisen tehtävä-ID:n varalta
+    this.route.params.subscribe(params => {
+      const taskId = params['id'];
+      if (taskId) {
+        // Jos ID on URL:ssa, haetaan tehtävä ja avataan se modaalissa
+        console.log('Avaamassa tehtävää ID:llä:', taskId);
+        this.taskService.getTaskById(taskId).subscribe(task => {
+          if (task) {
+            this.openTaskModal(task);
+          }
+        });
+      }
+    });
+    
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
       // Tämä päivittää komponentin kun kieli vaihtuu
     });
@@ -364,6 +404,12 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     });
   }
 
+  loadProjects() {
+    this.projectService.getProjects().subscribe(projects => {
+      this.projects = projects;
+    });
+  }
+
   applyFilters() {
     let filtered = [...this.tasks];
 
@@ -381,6 +427,12 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     if (this.selectedCategory) {
       filtered = filtered.filter(task => task.category === this.selectedCategory);
     }
+    
+    // Suodatus projektin mukaan
+    if (this.selectedProject) {
+      filtered = filtered.filter(task => task.projectId === this.selectedProject);
+    }
+    // Huom: Kun selectedProject === null, näytetään kaikki tehtävät, mitään suodatusta ei tehdä projektin perusteella
 
     // Suodatus käyttäjän tehtävien mukaan
     if (this.selectedAssigneeFilter && this.currentUser) {
@@ -539,11 +591,25 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   handleFiltersChanged(filters: FilterOptions) {
     if (filters.state) this.selectedStates = filters.state as TaskState[];
     if (filters.priority) this.selectedPriorities = filters.priority as TaskPriority[];
-    this.selectedCategory = filters.category ?? null;
-    this.selectedAssigneeFilter = filters.assigneeFilter ?? null;
+    
+    // Käsitellään null-arvot oikein
+    this.selectedCategory = filters.category !== undefined ? filters.category : null;
+    this.selectedProject = filters.project !== undefined ? filters.project : null;
+    this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
+    
     if (filters.sortBy) this.sortBy = filters.sortBy;
     if (filters.sortDirection !== undefined) this.sortDirection = filters.sortDirection;
     
     this.applyFilters();
+  }
+
+  getProjectById(projectId: string | null): Project | undefined {
+    if (!projectId) return undefined;
+    return this.projects.find(p => p.id === projectId);
+  }
+
+  getProjectName(projectId: string | null): string {
+    const project = this.getProjectById(projectId);
+    return project ? project.name : 'Ei projektia';
   }
 } 

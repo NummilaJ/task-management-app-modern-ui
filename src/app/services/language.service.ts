@@ -508,6 +508,55 @@ export class LanguageService {
       en: 'Created',
       fi: 'Luotu'
     },
+    // Projektit
+    projects: {
+      en: 'Projects',
+      fi: 'Projektit'
+    },
+    project: {
+      en: 'Project',
+      fi: 'Projekti'
+    },
+    projectName: {
+      en: 'Project Name',
+      fi: 'Projektin nimi'
+    },
+    enterProjectName: {
+      en: 'Enter project name',
+      fi: 'Syötä projektin nimi'
+    },
+    enterProjectDescription: {
+      en: 'Enter project description',
+      fi: 'Syötä projektin kuvaus'
+    },
+    createFirstProject: {
+      en: 'Create First Project',
+      fi: 'Luo ensimmäinen projekti'
+    },
+    newProject: {
+      en: 'New Project',
+      fi: 'Uusi projekti'
+    },
+    noProjects: {
+      en: 'No projects. Create a new project to get started.',
+      fi: 'Ei projekteja. Luo uusi projekti aloittaaksesi.'
+    },
+    projectTasks: {
+      en: 'Project Tasks',
+      fi: 'Projektin tehtävät'
+    },
+    noTasksInProject: {
+      en: 'No tasks in this project yet.',
+      fi: 'Tässä projektissa ei ole vielä tehtäviä.'
+    },
+    allProjects: {
+      en: 'All Projects',
+      fi: 'Kaikki projektit'
+    },
+    confirmDeleteProject: {
+      en: 'Are you sure you want to delete this project? Tasks will remain but will no longer be associated with this project.',
+      fi: 'Haluatko varmasti poistaa tämän projektin? Tehtävät säilyvät, mutta niitä ei enää liitetä tähän projektiin.'
+    },
   };
   
   constructor() {}

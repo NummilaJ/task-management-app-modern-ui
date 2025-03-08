@@ -10,7 +10,10 @@ export enum ActivityType {
   SUBTASK_DELETED = 'subtask_deleted',
   COMMENT_ADDED = 'comment_added',
   COMMENT_DELETED = 'comment_deleted',
-  STATUS_CHANGED = 'status_changed'
+  STATUS_CHANGED = 'status_changed',
+  PROJECT_CREATED = 'project_created',
+  PROJECT_UPDATED = 'project_updated',
+  PROJECT_DELETED = 'project_deleted'
 }
 
 export interface ActivityLog {

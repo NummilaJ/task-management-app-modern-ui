@@ -1,0 +1,76 @@
+<div class="project-container">
+  <div class="header">
+    <h2>Projektit</h2>
+    <button class="btn btn-primary" (click)="startCreatingProject()">
+      <i class="fas fa-plus"></i> Uusi projekti
+    </button>
+  </div>
+
+  <!-- Projektin luontilomake -->
+  <div class="project-form" *ngIf="isCreatingProject">
+    <div class="form-group">
+      <label for="projectName">Projektin nimi</label>
+      <input 
+        type="text" 
+        id="projectName" 
+        class="form-control" 
+        [(ngModel)]="newProject.name" 
+        placeholder="Projektin nimi" 
+        required
+      >
+    </div>
+    
+    <div class="form-group">
+      <label for="projectDescription">Kuvaus</label>
+      <textarea 
+        id="projectDescription" 
+        class="form-control" 
+        [(ngModel)]="newProject.description" 
+        placeholder="Projektin kuvaus" 
+        rows="3"
+      ></textarea>
+    </div>
+    
+    <div class="button-group">
+      <button class="btn btn-success" (click)="createProject()">Tallenna</button>
+      <button class="btn btn-secondary" (click)="cancelCreatingProject()">Peruuta</button>
+    </div>
+  </div>
+
+  <!-- Projektilista -->
+  <div class="project-list">
+    <div *ngIf="projects.length === 0" class="no-projects">
+      <p>Ei projekteja. Luo uusi projekti aloittaaksesi.</p>
+    </div>
+
+    <div *ngFor="let project of projects" 
+         class="project-card" 
+         [class.selected]="project.id === selectedProjectId"
+         (click)="selectProject(project)">
+      
+      <div class="project-color-indicator" [style.backgroundColor]="project.color"></div>
+      
+      <div class="project-details">
+        <div class="project-header">
+          <h3>{{ project.name }}</h3>
+          <div class="actions">
+            <button class="btn btn-sm btn-danger" (click)="deleteProject($event, project.id)">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="project.description">{{ project.description }}</p>
+        
+        <div class="stats">
+          <span class="task-count">
+            <i class="fas fa-tasks"></i> {{ getTaskCount(project) }} tehtävää
+          </span>
+          <span class="created-date">
+            Luotu: {{ project.createdAt | date:'dd.MM.yyyy' }}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 
