@@ -473,7 +473,9 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   }
 
   saveTaskChanges(updatedTask: Task) {
-    this.taskService.updateTask(updatedTask).subscribe(() => {
+    // Varmistetaan, että käytämme syvää kopiota tehtävästä
+    const taskCopy = JSON.parse(JSON.stringify(updatedTask));
+    this.taskService.updateTask(taskCopy).subscribe(() => {
       this.loadTasks();
       this.closeTaskModal();
     });
@@ -501,12 +503,9 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   setTaskState(task: Task, newState: TaskState) {
     if (task.state === newState) return; // Ei tehdä mitään jos tila on jo sama
     
-    const updatedTask = {
-      ...task,
-      state: newState
-    };
-    
-    this.taskService.updateTask(updatedTask).subscribe(() => {
+    // Käytetään updateTaskState-metodia, joka on suunniteltu erityisesti
+    // tehtävän tilan päivittämiseen. Tämä estää tehtävien sekoittumisen.
+    this.taskService.updateTaskState(task.id, newState).subscribe(() => {
       this.loadTasks();
     });
   }

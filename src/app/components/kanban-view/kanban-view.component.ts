@@ -396,7 +396,8 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   
   loadTasks() {
     this.taskService.getTasks().subscribe(tasks => {
-      this.tasks = tasks;
+      // Tehdään syvä kopio kaikista tehtävistä viittausongelmien välttämiseksi
+      this.tasks = JSON.parse(JSON.stringify(tasks));
       this.applyFilters();
     });
   }
@@ -420,31 +421,35 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   }
   
   applyFilters() {
-    let filtered = [...this.tasks];
+    // Tehdään syvä kopio, jotta varmistetaan ettei viittausongelmia tapahdu
+    let filtered = JSON.parse(JSON.stringify(this.tasks));
 
     // Prioriteetti-suodatus
     if (this.selectedPriority) {
-      filtered = filtered.filter(task => task.priority === this.selectedPriority);
+      filtered = filtered.filter((task: Task) => task.priority === this.selectedPriority);
     }
 
     // Kategoria-suodatus
     if (this.selectedCategory) {
-      filtered = filtered.filter(task => task.category === this.selectedCategory);
+      filtered = filtered.filter((task: Task) => task.category === this.selectedCategory);
     }
 
     // Käyttäjän tehtävien suodatus
     if (this.selectedAssigneeFilter && this.currentUser) {
       if (this.selectedAssigneeFilter === 'assigned') {
-        filtered = filtered.filter(task => task.assignee === this.currentUser?.id);
+        filtered = filtered.filter((task: Task) => task.assignee === this.currentUser?.id);
       } else if (this.selectedAssigneeFilter === 'created') {
-        filtered = filtered.filter(task => task.createdBy === this.currentUser?.id);
+        filtered = filtered.filter((task: Task) => task.createdBy === this.currentUser?.id);
       }
     }
 
-    // Jaa tehtävät tilan mukaan
-    this.todoTasks = filtered.filter(task => task.state === TaskState.TO_DO);
-    this.inProgressTasks = filtered.filter(task => task.state === TaskState.IN_PROGRESS);
-    this.doneTasks = filtered.filter(task => task.state === TaskState.DONE);
+    // Jaa tehtävät tilan mukaan - kopioi erikseen jokaiseen sarakkeeseen
+    this.todoTasks = filtered.filter((task: Task) => task.state === TaskState.TO_DO)
+      .map((task: Task) => JSON.parse(JSON.stringify(task)));
+    this.inProgressTasks = filtered.filter((task: Task) => task.state === TaskState.IN_PROGRESS)
+      .map((task: Task) => JSON.parse(JSON.stringify(task)));
+    this.doneTasks = filtered.filter((task: Task) => task.state === TaskState.DONE)
+      .map((task: Task) => JSON.parse(JSON.stringify(task)));
   }
   
   drop(event: CdkDragDrop<Task[]>, newState: TaskState) {
@@ -453,15 +458,15 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
       return;
     }
     
-    const task = event.item.data as Task;
+    const taskId = (event.item.data as Task).id;
     
-    if (task.state !== newState) {
-      // Päivitä tehtävän tila
-      const updatedTask = { ...task, state: newState };
-      this.taskService.updateTask(updatedTask).subscribe(() => {
+    // Käytetään taskService.updateTaskState-metodia ja päivitetään näkymä uudella
+    // tehtävähaulla vastauksena, ei yritetä päivittää paikallisia listoja suoraan
+    this.taskService.updateTaskState(taskId, newState)
+      .subscribe(() => {
+        // Haetaan kaikki tehtävät uudelleen, mikä varmistaa ettei tehtävät sekoitu
         this.loadTasks();
       });
-    }
   }
   
   canEnterList(drag: any, drop: any): boolean {
@@ -491,7 +496,9 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   }
   
   saveTaskChanges(updatedTask: Task) {
-    this.taskService.updateTask(updatedTask).subscribe(() => {
+    // Varmistetaan, että käytämme syvää kopiota tehtävästä
+    const taskCopy = JSON.parse(JSON.stringify(updatedTask));
+    this.taskService.updateTask(taskCopy).subscribe(() => {
       this.loadTasks();
       this.closeTaskModal();
     });

@@ -48,21 +48,91 @@ export class TaskService {
     }
     
     try {
-      const tasks: Task[] = JSON.parse(tasksJson);
+      // Parsitaan JSON-merkkijono Task-objekteiksi
+      const parsedTasks: Task[] = JSON.parse(tasksJson);
+      console.log(`Loaded ${parsedTasks.length} tasks from storage`);
       
-      // Muunnetaan string-päivämäärät Date-olioiksi
-      return tasks.map(task => ({
-        ...task,
-        createdAt: new Date(task.createdAt),
-        subtasks: (task.subtasks || []).map(subtask => ({
-          ...subtask,
-          createdAt: new Date(subtask.createdAt)
-        })),
-        comments: (task.comments || []).map(comment => ({
-          ...comment,
-          createdAt: new Date(comment.createdAt)
-        }))
-      }));
+      // Luodaan täysin erilliset kopiot jokaisesta tehtävästä
+      return parsedTasks.map(parsedTask => {
+        // Varmistetaan, että ID on aina string-tyyppinen
+        const taskId = String(parsedTask.id);
+        
+        // Parsitaan state string-arvosta takaisin enumeraatioksi
+        let taskState: TaskState;
+        if (typeof parsedTask.state === 'string') {
+          // Jos state on string, vertaa stringejä
+          if (parsedTask.state === 'TO_DO') {
+            taskState = TaskState.TO_DO;
+          } else if (parsedTask.state === 'IN_PROGRESS') {
+            taskState = TaskState.IN_PROGRESS;
+          } else if (parsedTask.state === 'DONE') {
+            taskState = TaskState.DONE;
+          } else {
+            console.warn(`Unknown task state string: ${parsedTask.state}, defaulting to TO_DO`);
+            taskState = TaskState.TO_DO;
+          }
+        } else {
+          // Jos state on jo enumeraatioarvo
+          taskState = parsedTask.state as TaskState;
+        }
+        
+        // Parsitaan priority string-arvosta takaisin enumeraatioksi
+        let taskPriority: TaskPriority;
+        if (typeof parsedTask.priority === 'string') {
+          // Jos priority on string, vertaa stringejä
+          if (parsedTask.priority === 'LOW') {
+            taskPriority = TaskPriority.LOW;
+          } else if (parsedTask.priority === 'MEDIUM') {
+            taskPriority = TaskPriority.MEDIUM;
+          } else if (parsedTask.priority === 'HIGH') {
+            taskPriority = TaskPriority.HIGH;
+          } else {
+            console.warn(`Unknown task priority string: ${parsedTask.priority}, defaulting to MEDIUM`);
+            taskPriority = TaskPriority.MEDIUM;
+          }
+        } else {
+          // Jos priority on jo enumeraatioarvo
+          taskPriority = parsedTask.priority as TaskPriority;
+        }
+        
+        // Luo uusi Task-objekti, jossa on konvertoidut päivämäärät ja oikeat enumeraatioarvot
+        const task: Task = {
+          id: taskId, // Käytä varmistettua string-ID:tä
+          title: parsedTask.title,
+          description: parsedTask.description,
+          assignee: parsedTask.assignee ? String(parsedTask.assignee) : null, // Varmista, että assignee on string tai null
+          assigneeName: parsedTask.assigneeName,
+          state: taskState, // Käytä oikein konvertoitua enumeraatioarvoa
+          priority: taskPriority, // Käytä oikein konvertoitua enumeraatioarvoa
+          category: parsedTask.category ? String(parsedTask.category) : null, // Varmista, että category on string tai null
+          createdAt: new Date(parsedTask.createdAt),
+          createdBy: parsedTask.createdBy ? String(parsedTask.createdBy) : null, // Varmista, että createdBy on string tai null
+          progress: parsedTask.progress,
+          
+          // Luodaan erilliset kopiot alitehtävistä
+          subtasks: (parsedTask.subtasks || []).map(subtask => ({
+            id: String(subtask.id), // Varmista, että ID on string
+            title: subtask.title,
+            completed: subtask.completed,
+            createdAt: new Date(subtask.createdAt)
+          })),
+          
+          // Luodaan erilliset kopiot kommenteista
+          comments: (parsedTask.comments || []).map(comment => {
+            // Varmista että kaikki kentät ovat oikein määritelty
+            return {
+              id: String(comment.id), // Varmista, että ID on string
+              taskId: String(parsedTask.id), // Varmista että taskId on asetettu ja on string
+              userId: String(comment.userId), // Varmista, että userId on string
+              text: comment.text || '', // Käytä text-kenttää
+              userName: comment.userName || '', // Käytä userName-kenttää (tai tyhjää)
+              createdAt: new Date(comment.createdAt)
+            };
+          })
+        };
+        
+        return task;
+      });
     } catch (error) {
       console.error('Error parsing tasks from localStorage:', error);
       return [];
@@ -76,9 +146,83 @@ export class TaskService {
   }
 
   private saveTasks(tasks: Task[]) {
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(tasks));
-    this.tasks.next(tasks);
-    this.updateStats(tasks);
+    console.log(`Saving ${tasks.length} tasks to storage`);
+    
+    // Luodaan kopio päivämäärien ja objektien varmistamiseksi
+    const serializedTasks = tasks.map(task => {
+      // Varmistetaan, että enumeraatioarvot käsitellään oikein
+      let taskState: TaskState;
+      if (typeof task.state === 'string') {
+        if (task.state === 'TO_DO') {
+          taskState = TaskState.TO_DO;
+        } else if (task.state === 'IN_PROGRESS') {
+          taskState = TaskState.IN_PROGRESS;
+        } else if (task.state === 'DONE') {
+          taskState = TaskState.DONE;
+        } else {
+          console.warn(`Unknown task state: ${task.state} in saveTasks, defaulting to TO_DO`);
+          taskState = TaskState.TO_DO;
+        }
+      } else {
+        taskState = task.state;
+      }
+      
+      let taskPriority: TaskPriority;
+      if (typeof task.priority === 'string') {
+        if (task.priority === 'LOW') {
+          taskPriority = TaskPriority.LOW;
+        } else if (task.priority === 'MEDIUM') {
+          taskPriority = TaskPriority.MEDIUM;
+        } else if (task.priority === 'HIGH') {
+          taskPriority = TaskPriority.HIGH;
+        } else {
+          console.warn(`Unknown task priority: ${task.priority} in saveTasks, defaulting to MEDIUM`);
+          taskPriority = TaskPriority.MEDIUM;
+        }
+      } else {
+        taskPriority = task.priority;
+      }
+      
+      // Luodaan täysin uusi kopio tehtävästä
+      const taskCopy = {
+        id: String(task.id), // Varmista, että ID on string
+        title: task.title,
+        description: task.description,
+        assignee: task.assignee ? String(task.assignee) : null, // Varmista, että assignee on string tai null
+        assigneeName: task.assigneeName,
+        state: taskState, // Käytä varmistettua enumeraatioarvoa
+        priority: taskPriority, // Käytä varmistettua enumeraatioarvoa
+        category: task.category ? String(task.category) : null, // Varmista, että category on string tai null
+        createdAt: task.createdAt,
+        createdBy: task.createdBy ? String(task.createdBy) : null, // Varmista, että createdBy on string tai null
+        progress: task.progress,
+        
+        // Kopioidaan myös alitehtävät ja kommentit
+        subtasks: task.subtasks?.map(subtask => ({
+          id: String(subtask.id), // Varmista, että ID on string
+          title: subtask.title,
+          completed: subtask.completed,
+          createdAt: subtask.createdAt
+        })) || [],
+        comments: task.comments?.map(comment => ({
+          id: String(comment.id), // Varmista, että ID on string
+          taskId: String(comment.taskId), // Varmista, että taskId on string
+          userId: String(comment.userId), // Varmista, että userId on string
+          text: comment.text,
+          userName: comment.userName,
+          createdAt: comment.createdAt
+        })) || []
+      };
+      
+      return taskCopy;
+    });
+    
+    // Tallennetaan localStorage:een
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(serializedTasks));
+    
+    // Päivitetään subjektit - käytä serializedTasks-kopiota tässäkin
+    this.tasks.next(serializedTasks);
+    this.updateStats(serializedTasks);
   }
 
   private updateStats(tasks: Task[]) {
@@ -115,6 +259,13 @@ export class TaskService {
   }
 
   addTask(task: Task): Observable<Task> {
+    // Varmistetaan että tehtävällä on uniikki ID
+    if (!task.id) {
+      task.id = uuidv4(); // Generoidaan uniikki ID
+    }
+    
+    console.log(`Adding new task with ID: ${task.id}`);
+    
     const allTasks = this.tasks.getValue();
     const newTasks = [...allTasks, task];
     
@@ -133,50 +284,182 @@ export class TaskService {
   }
 
   updateTask(task: Task): Observable<Task> {
+    console.log(`Updating task: ${task.id}, ${task.title}`);
+    // Haetaan kaikki tehtävät
     const allTasks = this.tasks.getValue();
-    const oldTask = allTasks.find(t => t.id === task.id);
-    const updatedTasks = allTasks.map(t => t.id === task.id ? task : t);
     
+    // Etsitään päivitettävä tehtävä ID:n perusteella - käytä string-vertailua
+    const existingTaskIndex = allTasks.findIndex(t => String(t.id) === String(task.id));
+    
+    // Jos tehtävää ei löydy, ilmoita ja palauta alkuperäinen
+    if (existingTaskIndex === -1) {
+      console.error(`Task with id ${task.id} not found`);
+      return of(task);
+    }
+    
+    console.log(`Found task at index: ${existingTaskIndex}`);
+    
+    // Hae vanha tehtävä vertailuja varten
+    const oldTask = allTasks[existingTaskIndex];
+    
+    // Varmistetaan, että state on oikea enumeraatioarvo
+    let taskState: TaskState;
+    if (typeof task.state === 'string') {
+      if (task.state === 'TO_DO') {
+        taskState = TaskState.TO_DO;
+      } else if (task.state === 'IN_PROGRESS') {
+        taskState = TaskState.IN_PROGRESS;
+      } else if (task.state === 'DONE') {
+        taskState = TaskState.DONE;
+      } else {
+        console.warn(`Unknown task state string in updateTask: ${task.state}, using original state`);
+        taskState = oldTask.state;
+      }
+    } else {
+      taskState = task.state;
+    }
+    
+    // Varmistetaan, että priority on oikea enumeraatioarvo
+    let taskPriority: TaskPriority;
+    if (typeof task.priority === 'string') {
+      if (task.priority === 'LOW') {
+        taskPriority = TaskPriority.LOW;
+      } else if (task.priority === 'MEDIUM') {
+        taskPriority = TaskPriority.MEDIUM;
+      } else if (task.priority === 'HIGH') {
+        taskPriority = TaskPriority.HIGH;
+      } else {
+        console.warn(`Unknown task priority string in updateTask: ${task.priority}, using original priority`);
+        taskPriority = oldTask.priority;
+      }
+    } else {
+      taskPriority = task.priority;
+    }
+    
+    // Luo uusi tehtäväkopio, joka korvaa vanhan - käytä syvää kopiointia
+    const updatedTask: Task = JSON.parse(JSON.stringify({
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      assignee: task.assignee,
+      assigneeName: task.assigneeName,
+      state: taskState,
+      priority: taskPriority,
+      category: task.category,
+      createdAt: task.createdAt instanceof Date ? task.createdAt : new Date(task.createdAt),
+      createdBy: task.createdBy,
+      progress: task.progress,
+      subtasks: task.subtasks || [],
+      comments: task.comments || []
+    }));
+    
+    // Luo uusi tehtävälista, jossa vanha tehtävä on korvattu päivitetyllä
+    const updatedTasks = [...allTasks];
+    updatedTasks[existingTaskIndex] = updatedTask;
+    
+    // Tallenna päivitetty lista
     this.saveTasks(updatedTasks);
-    this.tasks.next(updatedTasks);
-    this.updateStats(updatedTasks);
     
-    // Tarkistetaan, onko kyseessä tilan muutos "valmiiksi" 
-    if (oldTask && oldTask.state !== task.state && task.state === TaskState.DONE) {
-      // Lisätään STATUS_CHANGED aktiviteetti, jos tehtävä on merkitty valmiiksi
+    console.log(`Task updated successfully`);
+    
+    // Lisää aktiviteettiloki tarpeen mukaan
+    if (oldTask.state !== updatedTask.state && updatedTask.state === TaskState.DONE) {
+      // Tehtävä merkitty valmiiksi
       this.activityLogService.addActivity(
         ActivityType.STATUS_CHANGED,
-        task.id,
-        task.title,
-        TaskState.DONE // Tallennetaan DONE-tila details-kenttään
+        updatedTask.id,
+        updatedTask.title,
+        TaskState.DONE
       );
     } else {
-      // Lisätään tavallinen päivitysaktiviteetti
+      // Tavallinen päivitys
       this.activityLogService.addActivity(
         ActivityType.TASK_UPDATED,
-        task.id,
-        task.title
+        updatedTask.id,
+        updatedTask.title
       );
     }
     
-    return of(task);
+    // Palauta päivitetty tehtävä
+    return of(updatedTask);
   }
 
   updateTaskState(taskId: string, state: TaskState): Observable<Task> {
-    const task = this.tasks.getValue().find(t => t.id === taskId);
-    if (!task) {
+    console.log(`Updating task state for task ID: ${taskId} to ${state}`);
+    // Haetaan kaikki tehtävät
+    const allTasks = this.tasks.getValue();
+    console.log(`Total tasks in state: ${allTasks.length}`);
+    
+    // Debug: tulostetaan kaikki tehtävä-ID:t
+    allTasks.forEach((task, index) => {
+      console.log(`Task ${index}: id=${task.id}, title=${task.title}, state=${task.state}`);
+    });
+    
+    // Muutetaan tehtävän hakemista varmemmaksi - käytetään find-metodia indeksin sijaan
+    // ja varmistetaan, että hakemme oikeaa tehtävää
+    const existingTask = allTasks.find(task => String(task.id) === String(taskId));
+    
+    // Jos tehtävää ei löydy, ilmoita ja palauta null
+    if (!existingTask) {
+      console.error(`Task with id ${taskId} not found`);
       return of(null as any);
     }
     
-    // Lisätään aktiviteettiloki tilan muutoksesta - tallennetaan uusi tila details-kenttään
-    this.activityLogService.addActivity(
-      ActivityType.STATUS_CHANGED,
-      task.id,
-      task.title,
-      state // Tallennetaan uusi tila details-kenttään
+    console.log(`Found task: ${existingTask.title}, current state: ${existingTask.state}`);
+    
+    // Määritetään oikea TaskState-enumeraatioarvo (varmuuden vuoksi)
+    let targetState: TaskState;
+    if (typeof state === 'string') {
+      // Jos state on string, vertaa stringejä
+      if (state === 'TO_DO') {
+        targetState = TaskState.TO_DO;
+      } else if (state === 'IN_PROGRESS') {
+        targetState = TaskState.IN_PROGRESS;
+      } else if (state === 'DONE') {
+        targetState = TaskState.DONE;
+      } else {
+        console.warn(`Unknown state string value: ${state}, defaulting to TO_DO`);
+        targetState = TaskState.TO_DO;
+      }
+    } else {
+      // Jos state on jo enumeraatioarvo
+      targetState = state;
+    }
+    
+    console.log(`Target state: ${targetState}`);
+    
+    // Jos tila on jo sama, ei tehdä mitään
+    if (existingTask.state === targetState) {
+      console.log("State already matches, no change needed");
+      return of(existingTask);
+    }
+    
+    // Luo kopio tehtävästä päivitetyllä tilalla
+    const updatedTask: Task = {
+      ...existingTask, // Käytetään spread-operaattoria tehtävän kopioimiseen
+      state: targetState // Päivitetään vain tila
+    };
+    
+    console.log(`Updated task state to: ${updatedTask.state}`);
+    
+    // Luodaan uusi tehtävälista, jossa alkuperäinen tehtävä on korvattu päivitetyllä
+    const updatedTasks = allTasks.map(task => 
+      String(task.id) === String(taskId) ? updatedTask : task
     );
     
-    return this.updateTask({ ...task, state });
+    // Tallenna päivitetty lista
+    this.saveTasks(updatedTasks);
+    
+    // Lisää aktiviteettiloki tilan muutoksesta
+    this.activityLogService.addActivity(
+      ActivityType.STATUS_CHANGED,
+      updatedTask.id,
+      updatedTask.title,
+      targetState
+    );
+    
+    // Palauta päivitetty tehtävä
+    return of(updatedTask);
   }
 
   updateAssignee(taskId: string, assignee: string): Observable<Task> {
