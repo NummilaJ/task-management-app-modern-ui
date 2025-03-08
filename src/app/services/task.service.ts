@@ -360,7 +360,7 @@ export class TaskService {
       projectId: task.projectId,
       createdAt: new Date(task.createdAt).toISOString(),
       createdBy: task.createdBy,
-      progress: task.progress || 0,
+      progress: this.calculateProgress(task.subtasks || []),
       subtasks: task.subtasks || [],
       comments: task.comments || []
     }));
