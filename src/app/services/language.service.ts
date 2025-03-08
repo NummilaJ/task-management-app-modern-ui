@@ -331,6 +331,43 @@ export class LanguageService {
       en: 'Organize with categories',
       fi: 'Järjestä kategorioilla'
     },
+    // Kategoriahallinta
+    manageCategories: {
+      en: 'Manage Categories',
+      fi: 'Hallitse kategorioita'
+    },
+    categoryName: {
+      en: 'Name',
+      fi: 'Nimi'
+    },
+    categoryColor: {
+      en: 'Color',
+      fi: 'Väri'
+    },
+    enterCategoryName: {
+      en: 'Enter category name',
+      fi: 'Syötä kategorian nimi'
+    },
+    selectColor: {
+      en: 'Select color',
+      fi: 'Valitse väri'
+    },
+    addCategory: {
+      en: 'Add Category',
+      fi: 'Lisää kategoria'
+    },
+    editCategory: {
+      en: 'Edit Category',
+      fi: 'Muokkaa kategoriaa'
+    },
+    deleteCategory: {
+      en: 'Delete',
+      fi: 'Poista'
+    },
+    confirmDeleteCategory: {
+      en: 'Are you sure you want to delete this category?',
+      fi: 'Haluatko varmasti poistaa tämän kategorian?'
+    },
     completionRate: {
       en: 'completion rate',
       fi: 'valmistumisaste'
