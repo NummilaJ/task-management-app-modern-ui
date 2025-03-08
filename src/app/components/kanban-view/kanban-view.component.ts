@@ -110,6 +110,23 @@ import { Subscription } from 'rxjs';
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                 {{task.description}}
               </p>
+              
+              <!-- Aikataulutiedot -->
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                </div>
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+              
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                   <ng-container *ngIf="task.category">
@@ -186,6 +203,23 @@ import { Subscription } from 'rxjs';
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                 {{task.description}}
               </p>
+              
+              <!-- Aikataulutiedot -->
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                </div>
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+              
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                   <ng-container *ngIf="task.category">
@@ -262,6 +296,23 @@ import { Subscription } from 'rxjs';
               <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
                 {{task.description}}
               </p>
+              
+              <!-- Aikataulutiedot -->
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                </div>
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                </div>
+              </div>
+              
               <div class="flex justify-between items-center">
                 <div class="flex items-center space-x-2">
                   <ng-container *ngIf="task.category">

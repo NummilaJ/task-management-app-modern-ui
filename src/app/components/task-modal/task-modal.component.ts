@@ -216,6 +216,50 @@ import { LanguageService } from '../../services/language.service';
                 </div>
               </div>
 
+              <!-- Scheduled Date -->
+              <div>
+                <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('scheduledDate') }}</span>
+                <div class="flex items-center">
+                  <svg class="w-4 h-4 mr-1 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <input *ngIf="isEditing && editedTask"
+                         type="date"
+                         [(ngModel)]="scheduledDate"
+                         class="input-field text-sm">
+                  <div *ngIf="!isEditing" class="text-sm">
+                    <span *ngIf="task.scheduledDate" class="text-gray-900 dark:text-gray-100">
+                      {{ task.scheduledDate | date:'dd.MM.yyyy' }}
+                    </span>
+                    <span *ngIf="!task.scheduledDate" class="text-gray-500 dark:text-gray-400">
+                      {{ translate('noScheduledDate') }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+                
+              <!-- Deadline -->
+                <div>
+                  <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('deadline') }}</span>
+                  <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-1 text-red-500 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <input *ngIf="isEditing && editedTask"
+                           type="date"
+                           [(ngModel)]="deadlineDate"
+                           class="input-field text-sm">
+                    <div *ngIf="!isEditing" class="text-sm">
+                      <span *ngIf="task.deadline" class="text-red-500 dark:text-red-400">
+                        {{ task.deadline | date:'dd.MM.yyyy' }}
+                      </span>
+                      <span *ngIf="!task.deadline" class="text-gray-500 dark:text-gray-400">
+                        {{ translate('noDeadline') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
               <!-- Description -->
               <div>
                 <span class="text-xs text-gray-500 dark:text-gray-400 block mb-1">{{ translate('description') }}</span>
@@ -418,6 +462,10 @@ export class TaskModalComponent implements OnInit {
   projects: Project[] = [];
   isConfirmModalOpen = false;
   subtaskToDelete: Subtask | null = null;
+  
+  // Päivämäärien käsittelyä varten
+  deadlineDate: string | null = null;
+  scheduledDate: string | null = null;
 
   constructor(
     private taskService: TaskService,
@@ -460,24 +508,40 @@ export class TaskModalComponent implements OnInit {
 
   toggleEdit() {
     if (this.isEditing && this.editedTask) {
-      this.save.emit(this.editedTask);
-      this.isEditing = false;
-      this.editedTask = null;
+      this.saveChanges();
     } else {
       this.startEdit();
     }
   }
 
   startEdit() {
-    if (this.task) {
-      this.editedTask = { ...this.task };
-      this.isEditing = true;
+    if (!this.task) return;
+    
+    this.editedTask = { ...this.task };
+    
+    // Muunnetaan päivämäärät string-muotoon date-inputteja varten
+    if (this.task.deadline) {
+      const deadline = new Date(this.task.deadline);
+      this.deadlineDate = deadline.toISOString().split('T')[0];
+    } else {
+      this.deadlineDate = null;
     }
+    
+    if (this.task.scheduledDate) {
+      const scheduledDate = new Date(this.task.scheduledDate);
+      this.scheduledDate = scheduledDate.toISOString().split('T')[0];
+    } else {
+      this.scheduledDate = null;
+    }
+    
+    this.isEditing = true;
   }
 
   cancelEdit() {
     this.isEditing = false;
     this.editedTask = null;
+    this.deadlineDate = null;
+    this.scheduledDate = null;
   }
 
   closeModal() {
@@ -559,6 +623,29 @@ export class TaskModalComponent implements OnInit {
   closeDeleteSubtaskModal() {
     this.isConfirmModalOpen = false;
     this.subtaskToDelete = null;
+  }
+
+  saveChanges() {
+    if (this.editedTask) {
+      // Päivitä deadline ja scheduledDate kentät
+      if (this.deadlineDate) {
+        this.editedTask.deadline = new Date(this.deadlineDate);
+      } else {
+        this.editedTask.deadline = null;
+      }
+      
+      if (this.scheduledDate) {
+        this.editedTask.scheduledDate = new Date(this.scheduledDate);
+      } else {
+        this.editedTask.scheduledDate = null;
+      }
+      
+      this.save.emit(this.editedTask);
+      this.isEditing = false;
+      this.editedTask = null;
+      this.deadlineDate = null;
+      this.scheduledDate = null;
+    }
   }
 
   translate(key: string): string {

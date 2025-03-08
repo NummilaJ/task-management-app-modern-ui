@@ -163,6 +163,30 @@
     overflow: hidden;
   }
   
+  .task-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    
+    .deadline, .scheduled-date {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      
+      i {
+        color: var(--primary-color);
+      }
+    }
+    
+    .deadline {
+      i {
+        color: #f44336;
+      }
+    }
+  }
+  
   .task-meta {
     display: flex;
     gap: 0.75rem;

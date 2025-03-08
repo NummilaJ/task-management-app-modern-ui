@@ -69,15 +69,23 @@
               <button 
                 class="btn btn-sm btn-danger" 
                 *ngIf="task.projectId === projectId"
-                (click)="removeTaskFromProject(task.id)">
-                <i class="fas fa-minus"></i> Poista projektista
+                (click)="removeTaskFromProject(task)">
+                <i class="fas fa-times"></i> Poista projektista
               </button>
             </div>
           </div>
           
-          <p class="task-description" *ngIf="task.description">
-            {{ task.description }}
-          </p>
+          <p class="task-description">{{ task.description }}</p>
+          
+          <!-- Aikataulutiedot -->
+          <div *ngIf="task.deadline || task.scheduledDate" class="task-dates mb-2">
+            <div *ngIf="task.scheduledDate" class="scheduled-date">
+              <i class="fas fa-calendar-alt"></i> Suunniteltu: {{ task.scheduledDate | date:'dd.MM.yyyy' }}
+            </div>
+            <div *ngIf="task.deadline" class="deadline">
+              <i class="fas fa-calendar-times"></i> Määräaika: {{ task.deadline | date:'dd.MM.yyyy' }}
+            </div>
+          </div>
           
           <div class="task-meta">
             <span class="priority" [ngClass]="'priority-' + task.priority.toLowerCase()">

@@ -569,6 +569,31 @@ export class LanguageService {
       en: 'Are you sure you want to delete this project? Tasks will remain but will no longer be associated with this project.',
       fi: 'Haluatko varmasti poistaa tämän projektin? Tehtävät säilyvät, mutta niitä ei enää liitetä tähän projektiin.'
     },
+    // Aikataulutus
+    deadline: {
+      en: 'Deadline',
+      fi: 'Määräaika'
+    },
+    scheduledDate: {
+      en: 'Scheduled Date',
+      fi: 'Suunniteltu aloituspäivä'
+    },
+    setDeadline: {
+      en: 'Set deadline',
+      fi: 'Aseta määräaika'
+    },
+    setScheduledDate: {
+      en: 'Set scheduled date',
+      fi: 'Aseta suunniteltu aloituspäivä'
+    },
+    noDeadline: {
+      en: 'No deadline',
+      fi: 'Ei määräaikaa'
+    },
+    noScheduledDate: {
+      en: 'No scheduled date',
+      fi: 'Ei suunniteltua aloituspäivää'
+    },
   };
   
   constructor() {}

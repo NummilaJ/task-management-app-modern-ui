@@ -92,6 +92,22 @@ import { Subscription } from 'rxjs';
                 <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
               </select>
             </div>
+            
+            <!-- Scheduled Date -->
+            <div class="col-span-1">
+              <label for="scheduledDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('scheduledDate') }}</label>
+              <input type="date" id="scheduledDate" name="scheduledDate" [(ngModel)]="scheduledDate" 
+                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                     placeholder="{{ translate('setScheduledDate') }}">
+            </div>
+            
+            <!-- Deadline -->
+            <div class="col-span-1">
+              <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('deadline') }}</label>
+              <input type="date" id="deadline" name="deadline" [(ngModel)]="deadlineDate" 
+                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                     placeholder="{{ translate('setDeadline') }}">
+            </div>
 
             <!-- Submit -->
             <div class="col-span-2">
@@ -121,6 +137,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
   projects: Project[] = [];
   taskPriorities = Object.values(TaskPriority);
   private languageSubscription: Subscription | null = null;
+  
+  // Aikataulutusta varten
+  deadlineDate: string | null = null;
+  scheduledDate: string | null = null;
 
   newTask: Task = {
     id: '',
@@ -132,6 +152,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     projectId: null,
     createdAt: new Date(),
     createdBy: null,
+    deadline: null,
+    scheduledDate: null,
     subtasks: [],
     comments: [],
     progress: 0,
@@ -210,7 +232,22 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   createTask() {
     if (this.newTask.title && this.newTask.priority) {
+      // Asetetaan tehtävän luoja
       this.newTask.createdBy = this.currentUser?.id || null;
+      
+      // Päivitetään deadline ja scheduledDate päivämäärät
+      if (this.deadlineDate) {
+        this.newTask.deadline = new Date(this.deadlineDate);
+      } else {
+        this.newTask.deadline = null;
+      }
+      
+      if (this.scheduledDate) {
+        this.newTask.scheduledDate = new Date(this.scheduledDate);
+      } else {
+        this.newTask.scheduledDate = null;
+      }
+      
       this.taskService.addTask(this.newTask);
       this.resetForm();
     }
@@ -228,9 +265,15 @@ export class TaskListComponent implements OnInit, OnDestroy {
       projectId: null,
       createdAt: new Date(),
       createdBy: null,
+      deadline: null,
+      scheduledDate: null,
       subtasks: [],
       comments: [],
       progress: 0
     };
+    
+    // Nollataan myös päivämääräkentät
+    this.deadlineDate = null;
+    this.scheduledDate = null;
   }
 } 

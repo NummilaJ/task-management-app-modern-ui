@@ -161,6 +161,29 @@ import { LanguageService } from '../../services/language.service';
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{task.progress}}%
               </td>
+              
+              <!-- Scheduled Date sarake -->
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div *ngIf="task.scheduledDate" class="text-sm text-gray-700 dark:text-gray-300 flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{task.scheduledDate | date:'dd.MM.yyyy'}}</span>
+                </div>
+                <span *ngIf="!task.scheduledDate" class="text-sm text-gray-500 dark:text-gray-400">-</span>
+              </td>
+              
+              <!-- Deadline sarake -->
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div *ngIf="task.deadline" class="text-sm text-red-500 dark:text-red-400 flex items-center space-x-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  <span>{{task.deadline | date:'dd.MM.yyyy'}}</span>
+                </div>
+                <span *ngIf="!task.deadline" class="text-sm text-gray-500 dark:text-gray-400">-</span>
+              </td>
+              
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                 {{task.createdAt | date:'d.M.yyyy HH:mm'}}
               </td>
@@ -326,6 +349,8 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     { label: 'Project', value: 'project' },
     { label: 'Assignee', value: 'assignee' },
     { label: 'Progress', value: 'progress' },
+    { label: 'Scheduled', value: 'scheduledDate' },
+    { label: 'Deadline', value: 'deadline' },
     { label: 'Created', value: 'createdAt' },
     { label: 'Actions', value: 'actions' }
   ];

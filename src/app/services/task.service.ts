@@ -70,12 +70,12 @@ export class TaskService {
           } else if (parsedTask.state === 'DONE') {
             taskState = TaskState.DONE;
           } else {
-            console.warn(`Unknown task state string: ${parsedTask.state}, defaulting to TO_DO`);
+            // Tuntematon tila, käytetään oletusarvoa
             taskState = TaskState.TO_DO;
           }
         } else {
-          // Jos state on jo enumeraatioarvo
-          taskState = parsedTask.state as TaskState;
+          // Jos state ei ole string, käytetään oletusarvoa
+          taskState = TaskState.TO_DO;
         }
         
         // Parsitaan priority string-arvosta takaisin enumeraatioksi
@@ -89,55 +89,79 @@ export class TaskService {
           } else if (parsedTask.priority === 'HIGH') {
             taskPriority = TaskPriority.HIGH;
           } else {
-            console.warn(`Unknown task priority string: ${parsedTask.priority}, defaulting to MEDIUM`);
+            // Tuntematon prioriteetti, käytetään oletusarvoa
             taskPriority = TaskPriority.MEDIUM;
           }
         } else {
-          // Jos priority on jo enumeraatioarvo
-          taskPriority = parsedTask.priority as TaskPriority;
+          // Jos priority ei ole string, käytetään oletusarvoa
+          taskPriority = TaskPriority.MEDIUM;
         }
         
-        // Luo uusi Task-objekti, jossa on konvertoidut päivämäärät ja oikeat enumeraatioarvot
-        const task: Task = {
-          id: taskId, // Käytä varmistettua string-ID:tä
-          title: parsedTask.title,
-          description: parsedTask.description,
-          assignee: parsedTask.assignee ? String(parsedTask.assignee) : null, // Varmista, että assignee on string tai null
-          assigneeName: parsedTask.assigneeName,
-          state: taskState, // Käytä oikein konvertoitua enumeraatioarvoa
-          priority: taskPriority, // Käytä oikein konvertoitua enumeraatioarvoa
-          category: parsedTask.category ? String(parsedTask.category) : null, // Varmista, että category on string tai null
-          projectId: parsedTask.projectId ? String(parsedTask.projectId) : null, // Varmista, että projectId on string tai null
-          createdAt: new Date(parsedTask.createdAt),
-          createdBy: parsedTask.createdBy ? String(parsedTask.createdBy) : null, // Varmista, että createdBy on string tai null
-          progress: parsedTask.progress,
-          
-          // Luodaan erilliset kopiot alitehtävistä
-          subtasks: (parsedTask.subtasks || []).map(subtask => ({
-            id: String(subtask.id), // Varmista, että ID on string
-            title: subtask.title,
-            completed: subtask.completed,
-            createdAt: new Date(subtask.createdAt)
-          })),
-          
-          // Luodaan erilliset kopiot kommenteista
-          comments: (parsedTask.comments || []).map(comment => {
-            // Varmista että kaikki kentät ovat oikein määritelty
-            return {
-              id: String(comment.id), // Varmista, että ID on string
-              taskId: String(parsedTask.id), // Varmista että taskId on asetettu ja on string
-              userId: String(comment.userId), // Varmista, että userId on string
-              text: comment.text || '', // Käytä text-kenttää
-              userName: comment.userName || '', // Käytä userName-kenttää (tai tyhjää)
-              createdAt: new Date(comment.createdAt)
-            };
-          })
-        };
+        // Parsitaan päivämäärät takaisin Date-objekteiksi jos ne tulevat stringeinä
+        const createdAt = parsedTask.createdAt ? new Date(parsedTask.createdAt) : new Date();
         
-        return task;
+        // Käsitellään deadline ja scheduledDate, jotka ovat uusia kenttiä
+        let deadline = null;
+        if (parsedTask.deadline) {
+          deadline = new Date(parsedTask.deadline);
+        }
+        
+        let scheduledDate = null;
+        if (parsedTask.scheduledDate) {
+          scheduledDate = new Date(parsedTask.scheduledDate);
+        }
+        
+        // Alatehtävien käsittely
+        const subtasks = Array.isArray(parsedTask.subtasks) 
+          ? parsedTask.subtasks.map((subtask: any) => {
+              return {
+                id: String(subtask.id),
+                title: subtask.title,
+                completed: !!subtask.completed,
+                createdAt: subtask.createdAt ? new Date(subtask.createdAt) : new Date()
+              };
+            })
+          : [];
+        
+        // Kommenttien käsittely
+        const comments = Array.isArray(parsedTask.comments)
+          ? parsedTask.comments.map((comment: any) => {
+              return {
+                id: String(comment.id),
+                taskId: taskId,
+                userId: comment.userId || comment.authorId || '',
+                text: comment.text || '',
+                createdAt: comment.createdAt ? new Date(comment.createdAt) : 
+                           comment.timestamp ? new Date(comment.timestamp) : new Date(),
+                userName: comment.userName || comment.authorName || 'Tuntematon'
+              };
+            })
+          : [];
+        
+        // Lasketaan edistyminen alitehtävien perusteella
+        const progress = this.calculateProgress(subtasks);
+        
+        return {
+          id: taskId,
+          title: parsedTask.title || 'Otsikko puuttuu',
+          description: parsedTask.description || '',
+          assignee: parsedTask.assignee || null,
+          assigneeName: parsedTask.assigneeName,
+          state: taskState,
+          priority: taskPriority,
+          category: parsedTask.category || null,
+          projectId: parsedTask.projectId || null,
+          createdAt,
+          createdBy: parsedTask.createdBy || null,
+          deadline, // Lisätty deadline
+          scheduledDate, // Lisätty scheduledDate
+          subtasks,
+          comments,
+          progress
+        };
       });
     } catch (error) {
-      console.error('Error parsing tasks from localStorage:', error);
+      console.error('Error parsing tasks from storage:', error);
       return [];
     }
   }
@@ -199,6 +223,8 @@ export class TaskService {
         projectId: task.projectId ? String(task.projectId) : null, // Varmista, että projectId on string tai null
         createdAt: task.createdAt,
         createdBy: task.createdBy ? String(task.createdBy) : null, // Varmista, että createdBy on string tai null
+        deadline: task.deadline, // Tallennetaan määräaika
+        scheduledDate: task.scheduledDate, // Tallennetaan suunniteltu aloituspäivä
         progress: task.progress,
         
         // Kopioidaan myös alitehtävät ja kommentit
@@ -269,6 +295,15 @@ export class TaskService {
     }
     
     console.log(`Adding new task with ID: ${task.id}`);
+    
+    // Varmistetaan että uudet deadline ja scheduledDate kentät ovat olemassa
+    if (task.deadline === undefined) {
+      task.deadline = null;
+    }
+    
+    if (task.scheduledDate === undefined) {
+      task.scheduledDate = null;
+    }
     
     const allTasks = this.tasks.getValue();
     const newTasks = [...allTasks, task];
@@ -736,5 +771,146 @@ export class TaskService {
     
     console.log(`Tehtävä löytyi:`, task);
     return of(task);
+  }
+
+  /**
+   * Asettaa tehtävälle määräajan
+   * @param taskId Tehtävän ID
+   * @param deadline Määräajan päivämäärä
+   * @returns Päivitetty tehtävä
+   */
+  setDeadline(taskId: string, deadline: Date | null): Observable<Task> {
+    console.log(`Asetetaan määräaika tehtävälle ${taskId}:`, deadline);
+    const allTasks = this.tasks.getValue();
+    const taskIndex = allTasks.findIndex(t => String(t.id) === String(taskId));
+    
+    if (taskIndex === -1) {
+      console.error(`Tehtävää ID:llä ${taskId} ei löydy`);
+      return of(null as unknown as Task);
+    }
+    
+    const task = { ...allTasks[taskIndex] };
+    task.deadline = deadline;
+    
+    const updatedTasks = [...allTasks];
+    updatedTasks[taskIndex] = task;
+    
+    this.tasks.next(updatedTasks);
+    this.saveTasks(updatedTasks);
+    this.updateStats(updatedTasks);
+    
+    // Lisää aktiviteettilokin merkintä
+    this.activityLogService.addActivity(
+      ActivityType.TASK_UPDATED, 
+      task.id, 
+      task.title, 
+      deadline ? `Määräaika asetettu: ${deadline.toLocaleDateString()}` : 'Määräaika poistettu'
+    );
+    
+    return of(task);
+  }
+
+  /**
+   * Asettaa tehtävälle suunnitellun aloituspäivämäärän
+   * @param taskId Tehtävän ID
+   * @param scheduledDate Suunniteltu aloituspäivämäärä
+   * @returns Päivitetty tehtävä
+   */
+  setScheduledDate(taskId: string, scheduledDate: Date | null): Observable<Task> {
+    console.log(`Asetetaan suunniteltu päivämäärä tehtävälle ${taskId}:`, scheduledDate);
+    const allTasks = this.tasks.getValue();
+    const taskIndex = allTasks.findIndex(t => String(t.id) === String(taskId));
+    
+    if (taskIndex === -1) {
+      console.error(`Tehtävää ID:llä ${taskId} ei löydy`);
+      return of(null as unknown as Task);
+    }
+    
+    const task = { ...allTasks[taskIndex] };
+    task.scheduledDate = scheduledDate;
+    
+    const updatedTasks = [...allTasks];
+    updatedTasks[taskIndex] = task;
+    
+    this.tasks.next(updatedTasks);
+    this.saveTasks(updatedTasks);
+    this.updateStats(updatedTasks);
+    
+    // Lisää aktiviteettilokin merkintä
+    this.activityLogService.addActivity(
+      ActivityType.TASK_UPDATED, 
+      task.id, 
+      task.title, 
+      scheduledDate ? `Suunniteltu aloituspäivä asetettu: ${scheduledDate.toLocaleDateString()}` : 'Suunniteltu aloituspäivä poistettu'
+    );
+    
+    return of(task);
+  }
+
+  /**
+   * Hakee tehtävät tietyltä aikaväliltä joko määräajan tai suunnitellun aloituspäivän perusteella
+   * @param startDate Aikavälin alkupäivämäärä
+   * @param endDate Aikavälin loppupäivämäärä
+   * @param useDeadline Jos true, käyttää määräaikaa. Jos false, käyttää suunniteltua aloituspäivää.
+   * @returns Aikavälin tehtävät
+   */
+  getTasksByDateRange(startDate: Date, endDate: Date, useDeadline: boolean = true): Observable<Task[]> {
+    const dateField = useDeadline ? 'deadline' : 'scheduledDate';
+    
+    return this.tasks.pipe(
+      map(tasks => {
+        return tasks.filter(task => {
+          const taskDate = task[dateField] as Date | null;
+          if (!taskDate) return false;
+          
+          // Muunnetaan päivämäärät vertailtavaan muotoon (ilman kellonaikaa)
+          const taskDateOnly = new Date(taskDate.getFullYear(), taskDate.getMonth(), taskDate.getDate());
+          const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+          const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+          
+          return taskDateOnly >= startDateOnly && taskDateOnly <= endDateOnly;
+        });
+      })
+    );
+  }
+
+  /**
+   * Hakee lähestyvät määräajat (tehtävät, joiden määräaika on seuraavan 7 päivän sisällä)
+   * @returns Lähestyvien määräaikojen tehtävät
+   */
+  getUpcomingDeadlines(): Observable<Task[]> {
+    const today = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(today.getDate() + 7);
+    
+    return this.tasks.pipe(
+      map(tasks => {
+        return tasks.filter(task => {
+          if (!task.deadline || task.state === TaskState.DONE) return false;
+          
+          const deadlineDate = new Date(task.deadline);
+          return deadlineDate >= today && deadlineDate <= nextWeek;
+        });
+      })
+    );
+  }
+
+  /**
+   * Hakee myöhässä olevat tehtävät (määräaika mennyt, mutta ei valmis)
+   * @returns Myöhässä olevat tehtävät
+   */
+  getOverdueTasks(): Observable<Task[]> {
+    const today = new Date();
+    
+    return this.tasks.pipe(
+      map(tasks => {
+        return tasks.filter(task => {
+          if (!task.deadline || task.state === TaskState.DONE) return false;
+          
+          const deadlineDate = new Date(task.deadline);
+          return deadlineDate < today;
+        });
+      })
+    );
   }
 } 

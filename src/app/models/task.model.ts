@@ -19,6 +19,8 @@ export interface Task {
   projectId: string | null;
   createdAt: Date;
   createdBy: string | null;
+  deadline: Date | null; // Tehtävän määräaika
+  scheduledDate: Date | null; // Tehtävän suunniteltu aloituspäivä
   subtasks: Subtask[];
   comments: Comment[];
   progress: number; // Prosenttiluku 0-100 alitehtävien edistymisestä
