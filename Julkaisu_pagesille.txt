@@ -1,0 +1,40 @@
+# GitHub Pagesille julkaiseminen - Ohjeet
+
+## Vaihe 1: Sovelluksen rakentaminen tuotantoversioksi
+
+Rakenna sovellus tuotantoversioksi määrittäen oikea perus-URL-osoite:
+
+```
+npx ng build --configuration production --base-href "https://nummilaj.github.io/task-management-app-modern-ui/"
+```
+
+Tämä komento:
+- Käyttää npx:ää, joka mahdollistaa paikallisesti asennetun Angular CLI:n käytön
+- Rakentaa sovelluksen tuotantokonfiguraatiolla
+- Asettaa base-href-arvon osoittamaan GitHub Pages URL-osoitteeseen
+- Luo build-tiedostot `dist/task-management-app` -hakemistoon
+
+## Vaihe 2: Julkaiseminen GitHub Pagesissa
+
+Käytä angular-cli-ghpages -työkalua julkaistaksesi sovelluksen:
+
+```
+npx angular-cli-ghpages --dir=dist/task-management-app
+```
+
+Tämä komento:
+- Julkaisee dist/task-management-app -hakemiston sisällön GitHub Pagesissa
+- Luo .nojekyll-tiedoston (estää Jekyllin prosessoinnin)
+- Pushaa tiedostot gh-pages-haaraan GitHub-repositoriossasi
+- Julkaisee sovelluksen osoitteessa https://nummilaj.github.io/task-management-app-modern-ui/
+
+## Huomioita
+
+- Voit saada varoituksia budjetin ylityksistä (kuten CSS-tiedostojen koosta), mutta ne eivät yleensä estä sovelluksen toimintaa
+- Varmista, että repositorio on julkinen tai että GitHub Pages on käytössä yksityisessä repositoriossa
+- Julkaisu saattaa kestää muutaman minuutin ennen kuin muutokset näkyvät GitHub Pages -sivulla
+
+## Julkaisun tarkistaminen
+
+Kun julkaisu on valmis, voit tarkistaa sovelluksen toiminnan avaamalla selaimen osoitteessa:
+https://nummilaj.github.io/task-management-app-modern-ui/ 
