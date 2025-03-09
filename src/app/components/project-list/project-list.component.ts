@@ -9,6 +9,7 @@ import { LanguageService } from '../../services/language.service';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
 import { CategoryService } from '../../services/category.service';
 import { Category } from '../../models/category.model';
+import { ToastService } from '../../services/toast.service';
 
 // Laajennettu rajapinta kategoriavalinnoille
 interface CategoryWithSelected extends Category {
@@ -262,7 +263,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private router: Router,
     private languageService: LanguageService,
-    private categoryService: CategoryService
+    private categoryService: CategoryService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
@@ -360,7 +362,8 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       .subscribe(() => {
         this.isCreatingProject = false;
         this.selectedColor = null; // Reset värinvalinta
-        console.log('Project created with categories:', projectData.categoryIds);
+        this.loadProjects();
+        this.toastService.success('projectCreatedSuccess');
       });
   }
 
@@ -379,7 +382,10 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     if (this.projectToDelete) {
       this.projectService.deleteProject(this.projectToDelete)
         .pipe(takeUntil(this.destroy$))
-        .subscribe();
+        .subscribe(() => {
+          this.loadProjects();
+          this.toastService.success('projectDeletedSuccess');
+        });
       this.projectToDelete = null;
     }
     this.isConfirmModalOpen = false;

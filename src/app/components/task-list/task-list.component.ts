@@ -13,6 +13,7 @@ import { User } from '../../models/user.model';
 import { LanguageService } from '../../services/language.service';
 import { Subscription } from 'rxjs';
 import { ProjectContextService } from '../../services/project-context.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-task-list',
@@ -186,7 +187,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private languageService: LanguageService,
     private projectContextService: ProjectContextService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -403,6 +405,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
       this.taskService.addTask(this.newTask);
       this.resetForm();
       this.taskChanged.emit(); // Ilmoita tehtävän muutoksesta
+      this.toastService.success('taskCreatedSuccess');
     }
   }
 

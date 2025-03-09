@@ -654,6 +654,51 @@ export class LanguageService {
       en: 'No color selected. A random color will be used.',
       fi: 'Väriä ei valittu. Käytetään satunnaista väriä.'
     },
+    // Toast-ilmoitukset
+    taskCreatedSuccess: {
+      en: 'Task created successfully',
+      fi: 'Tehtävä luotu onnistuneesti'
+    },
+    taskUpdatedSuccess: {
+      en: 'Task updated successfully',
+      fi: 'Tehtävä päivitetty onnistuneesti'
+    },
+    taskDeletedSuccess: {
+      en: 'Task deleted successfully',
+      fi: 'Tehtävä poistettu onnistuneesti'
+    },
+    projectCreatedSuccess: {
+      en: 'Project created successfully',
+      fi: 'Projekti luotu onnistuneesti'
+    },
+    projectUpdatedSuccess: {
+      en: 'Project updated successfully',
+      fi: 'Projekti päivitetty onnistuneesti'
+    },
+    projectDeletedSuccess: {
+      en: 'Project deleted successfully',
+      fi: 'Projekti poistettu onnistuneesti'
+    },
+    categoryCreatedSuccess: {
+      en: 'Category created successfully',
+      fi: 'Kategoria luotu onnistuneesti'
+    },
+    categoryUpdatedSuccess: {
+      en: 'Category updated successfully',
+      fi: 'Kategoria päivitetty onnistuneesti'
+    },
+    categoryDeletedSuccess: {
+      en: 'Category deleted successfully',
+      fi: 'Kategoria poistettu onnistuneesti'
+    },
+    operationSuccess: {
+      en: 'Operation completed successfully',
+      fi: 'Toiminto suoritettu onnistuneesti'
+    },
+    operationError: {
+      en: 'An error occurred',
+      fi: 'Tapahtui virhe'
+    },
   };
   
   constructor() {}

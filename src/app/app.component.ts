@@ -11,11 +11,12 @@ import { LanguageService } from './services/language.service';
 import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 import { ThemeService } from './services/theme.service';
 import { ProjectSelectorComponent } from './components/shared/project-selector/project-selector.component';
+import { ToastComponent } from './components/shared/toast/toast.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, LanguageSelectorComponent, ProjectSelectorComponent],
+  imports: [CommonModule, RouterModule, LanguageSelectorComponent, ProjectSelectorComponent, ToastComponent],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       <!-- Sidebar -->
@@ -169,6 +170,9 @@ import { ProjectSelectorComponent } from './components/shared/project-selector/p
       <div class="ml-64 flex-grow p-6">
         <router-outlet></router-outlet>
       </div>
+      
+      <!-- Toast notifications -->
+      <app-toast></app-toast>
     </div>
   `,
   styles: []

@@ -16,6 +16,7 @@ import { TaskFiltersComponent, FilterOptions } from '../shared/task-filters/task
 import { Observable, Subscription } from 'rxjs';
 import { LanguageService } from '../../services/language.service';
 import { ProjectContextService } from '../../services/project-context.service';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-task-view',
@@ -383,7 +384,8 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     private projectService: ProjectService,
     private languageService: LanguageService,
     private projectContextService: ProjectContextService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toastService: ToastService
   ) {}
   
   ngOnInit() {
@@ -573,6 +575,7 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     this.taskService.updateTask(taskCopy).subscribe(() => {
       this.loadTasks();
       this.closeTaskModal();
+      this.toastService.success('taskUpdatedSuccess');
     });
   }
 
@@ -583,10 +586,12 @@ export class TaskViewComponent implements OnInit, OnDestroy {
 
   confirmDelete() {
     if (this.taskToDelete) {
-      this.taskService.deleteTask(this.taskToDelete.id);
-      this.loadTasks();
-      this.isConfirmModalOpen = false;
-      this.taskToDelete = null;
+      this.taskService.deleteTask(this.taskToDelete.id).subscribe(() => {
+        this.loadTasks();
+        this.isConfirmModalOpen = false;
+        this.taskToDelete = null;
+        this.toastService.success('taskDeletedSuccess');
+      });
     }
   }
 
