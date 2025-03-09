@@ -44,8 +44,10 @@ src/
 │   │   ├── task-comments/
 │   │   │   └── task-comments.component.ts
 │   │   └── shared/
-│   │       └── task-filters/
-│   │           └── task-filters.component.ts
+│   │       ├── task-filters/
+│   │       │   └── task-filters.component.ts
+│   │       └── toast/
+│   │           └── toast.component.ts
 │   ├── models/
 │   │   ├── task.model.ts
 │   │   ├── user.model.ts
@@ -60,7 +62,8 @@ src/
 │   │   ├── language.service.ts
 │   │   ├── auth.service.ts
 │   │   ├── category.service.ts
-│   │   └── activity-log.service.ts
+│   │   ├── activity-log.service.ts
+│   │   └── toast.service.ts
 │   └── app.component.ts
 └── styles.css
 ```
@@ -312,6 +315,30 @@ class ActivityLogService {
 }
 ```
 
+### 4.8 ToastService
+
+```typescript
+interface Toast {
+  id: string;
+  message: string;
+  type: 'success' | 'error' | 'warning' | 'info';
+  timeout: number;
+}
+
+class ToastService {
+  toasts$: Observable<Toast[]>;
+  
+  // Eri tyyppisten ilmoitusten näyttäminen
+  success(message: string, timeout?: number): void;
+  error(message: string, timeout?: number): void;
+  warning(message: string, timeout?: number): void;
+  info(message: string, timeout?: number): void;
+  
+  // Ilmoituksen poistaminen
+  remove(id: string): void;
+}
+```
+
 ![Palveluiden vuorovaikutus](assets/services-interaction.png)
 
 ## 5. Komponentit
@@ -376,6 +403,12 @@ Ominaisuudet:
 - Jaettu suodatuskomponentti eri näkymille
 - Suodatus tilan, prioriteetin, kategorian ja vastuuhenkilön mukaan
 - Järjestely eri kenttien mukaan
+
+### 5.12 ToastComponent
+- Tilapäisten ilmoitusten näyttäminen käyttäjälle
+- Onnistumis-, virhe-, varoitus- ja infotyyppisten ilmoitusten tuki
+- Ilmoitusten automaattinen poistuminen ajastimen jälkeen
+- Ilmoitusten manuaalinen poistaminen
 
 ![Komponenttien vuorovaikutus](assets/components-interaction.png)
 
@@ -468,12 +501,14 @@ Kaikki käyttöliittymän tekstit on määritelty avain-arvo-pareina:
    - Suodatus prioriteetin, tilan, kategorian ja vastuuhenkilön mukaan
    - Järjestely eri kenttien mukaan
    - Määräajat ja aloituspäivät
+   - Ilmoitukset tehtävien päivityksistä ja poistoista
 
 2. Projektien hallinta:
    - Projektien luonti, muokkaus ja poisto
    - Projektin tehtävien listaus ja hallinta
    - Projektin määräaikojen ja aloituspäivien hallinta
    - Projektin tehtävien päivämäärien automaattinen hallinta
+   - Ilmoitukset projektien luonnista ja poistosta
 
 3. Näkymät:
    - Taulukkonäkymä (TaskViewComponent)
@@ -508,7 +543,12 @@ Kaikki käyttöliittymän tekstit on määritelty avain-arvo-pareina:
    - Suomi/englanti-kielet
    - Automaattinen asetusten tallennus
 
-## 10. Tietojen tallennus
+10. Käyttäjäpalaute:
+    - Toast-ilmoitukset toimintojen onnistumisesta
+    - Visuaaliset palautteet käyttäjätoiminnoista
+    - Eri tyyppisten ilmoitusten esittäminen (onnistuminen, virhe, varoitus, info)
+
+## 11. Tietojen tallennus
 
 Sovellus käyttää local storagea tietojen tallentamiseen, mikä mahdollistaa:
 - Offline-käytön
@@ -525,7 +565,7 @@ Local storage -avaimet:
 - `language`: Valittu kieli (en/fi)
 - `theme`: Valittu teema (light/dark)
 
-## 11. Jatkokehitysmahdollisuudet
+## 12. Jatkokehitysmahdollisuudet
 
 1. Tietokantaintegraatio (Firebase, MongoDB)
 2. Hakutoiminnallisuus
@@ -540,7 +580,7 @@ Local storage -avaimet:
 11. Drag-and-drop-toiminnot tehtävien ja projektien hallintaan
 12. Gantt-kaavio projektien ja tehtävien visualisointiin
 
-## 12. Käyttöönotto-ohjeet
+## 13. Käyttöönotto-ohjeet
 
 1. Kloonaa repositorio:
 ```bash
