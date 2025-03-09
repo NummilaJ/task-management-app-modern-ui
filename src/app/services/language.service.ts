@@ -19,9 +19,21 @@ export class LanguageService {
   
   private translations: Translations = {
     // Navigaatio
+    mainMenu: {
+      en: 'Main Menu',
+      fi: 'Päävalikko'
+    },
+    management: {
+      en: 'Management',
+      fi: 'Hallinta'
+    },
     tasks: { 
       en: 'Tasks', 
       fi: 'Tehtävät' 
+    },
+    kanban: { 
+      en: 'Kanban', 
+      fi: 'Kanban' 
     },
     kanbanBoard: { 
       en: 'Kanban Board', 

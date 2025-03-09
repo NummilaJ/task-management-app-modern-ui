@@ -69,7 +69,7 @@ export interface FilterOptions {
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('category') }}</label>
           <select [(ngModel)]="selectedCategory" 
                   (change)="applyFilters()"
-                  class="mt-1 w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                  class="filter-select">
             <option [ngValue]="null">{{ translate('allCategories') }}</option>
             <option *ngFor="let cat of categories" [ngValue]="cat.id">
               {{ cat.name }}
@@ -82,7 +82,7 @@ export interface FilterOptions {
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
           <select [(ngModel)]="selectedProject" 
                   (change)="applyFilters()"
-                  class="mt-1 w-full h-10 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+                  class="filter-select">
             <option [ngValue]="null">{{ translate('allProjects') }}</option>
             <option *ngFor="let project of projects" [ngValue]="project.id">
               {{ project.name }}

@@ -32,7 +32,7 @@ import { Subscription } from 'rxjs';
       <!-- Otsikko ja suodattimet -->
       <div class="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ translate('kanbanBoard') }}</h2>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ translate('kanban') }}</h2>
           <div class="flex items-center gap-2">
             <a routerLink="/tasks" 
                class="btn-secondary flex items-center gap-2 transform hover:scale-105 mr-2">
@@ -97,7 +97,7 @@ import { Subscription } from 'rxjs';
             <div *ngFor="let task of todoTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-white dark:bg-gray-700 rounded-lg shadow-md hover:shadow-lg cursor-move transition-all duration-200 border-l-4 border-yellow-400"
+                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-yellow-400"
                  (click)="openTaskModal(task)">
               <div class="flex justify-between mb-2">
                 <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
@@ -190,7 +190,7 @@ import { Subscription } from 'rxjs';
             <div *ngFor="let task of inProgressTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-white dark:bg-gray-700 rounded-lg shadow-md hover:shadow-lg cursor-move transition-all duration-200 border-l-4 border-blue-400"
+                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-blue-400"
                  (click)="openTaskModal(task)">
               <div class="flex justify-between mb-2">
                 <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
@@ -283,7 +283,7 @@ import { Subscription } from 'rxjs';
             <div *ngFor="let task of doneTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-white dark:bg-gray-700 rounded-lg shadow-md hover:shadow-lg cursor-move transition-all duration-200 border-l-4 border-green-400"
+                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-green-400"
                  (click)="openTaskModal(task)">
               <div class="flex justify-between mb-2">
                 <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
@@ -586,11 +586,12 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
       ? filters.priority[0] 
       : null;
       
-    // Käsitellään null-arvot oikein
-    this.selectedCategory = filters.category !== undefined ? filters.category : null;
-    this.selectedProject = filters.project !== undefined ? filters.project : null;
-    this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
+    // Käsitellään kentät yhtenäisesti null-arvoilla
+    this.selectedCategory = filters.category ?? null;
+    this.selectedProject = filters.project ?? null;
+    this.selectedAssigneeFilter = filters.assigneeFilter ?? null;
     
+    // Suodata tehtävät päivitetyillä suodattimilla
     this.applyFilters();
   }
 } 
