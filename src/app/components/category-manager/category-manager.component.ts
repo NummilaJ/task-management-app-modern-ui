@@ -5,11 +5,12 @@ import { CategoryService } from '../../services/category.service';
 import { Category } from '../../models/category.model';
 import { CATEGORY_COLORS } from '../../models/category.model';
 import { LanguageService } from '../../services/language.service';
+import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-category-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ConfirmModalComponent],
   template: `
     <div class="space-y-6">
       <!-- Uuden kategorian lomake -->
@@ -87,7 +88,7 @@ import { LanguageService } from '../../services/language.service';
                             class="btn-secondary btn-sm">
                       {{ translate('editCategory') }}
                     </button>
-                    <button (click)="deleteCategory(category)"
+                    <button (click)="startDeleteCategory(category)"
                             class="btn-danger btn-sm ml-2">
                       {{ translate('deleteCategory') }}
                     </button>
@@ -149,6 +150,15 @@ import { LanguageService } from '../../services/language.service';
           </form>
         </div>
       </div>
+      
+      <!-- Vahvistusmodaali kategorian poistamiseen -->
+      <app-confirm-modal
+        [isOpen]="isConfirmDeleteOpen"
+        [title]="translate('deleteCategory')"
+        [message]="translate('confirmDeleteCategory')"
+        (confirm)="confirmDeleteCategory()"
+        (cancel)="cancelDeleteCategory()">
+      </app-confirm-modal>
     </div>
   `,
   styles: [`
@@ -169,6 +179,8 @@ export class CategoryManagerComponent implements OnInit {
   isEditing = false;
   isNewColorDropdownOpen = false;
   isEditColorDropdownOpen = false;
+  isConfirmDeleteOpen = false;
+  categoryToDelete: Category | null = null;
 
   constructor(
     private categoryService: CategoryService,
@@ -213,10 +225,21 @@ export class CategoryManagerComponent implements OnInit {
     this.editingCategory = null;
   }
 
-  deleteCategory(category: Category) {
-    if (confirm(this.translate('confirmDeleteCategory'))) {
-      this.categoryService.deleteCategory(category.id);
+  startDeleteCategory(category: Category) {
+    this.categoryToDelete = category;
+    this.isConfirmDeleteOpen = true;
+  }
+
+  confirmDeleteCategory() {
+    if (this.categoryToDelete) {
+      this.categoryService.deleteCategory(this.categoryToDelete.id);
+      this.cancelDeleteCategory();
     }
+  }
+
+  cancelDeleteCategory() {
+    this.isConfirmDeleteOpen = false;
+    this.categoryToDelete = null;
   }
 
   resetForm() {

@@ -377,8 +377,8 @@ export class LanguageService {
       fi: 'Muokkaa kategoriaa'
     },
     deleteCategory: {
-      en: 'Delete',
-      fi: 'Poista'
+      en: 'Delete Category',
+      fi: 'Poista kategoria'
     },
     confirmDeleteCategory: {
       en: 'Are you sure you want to delete this category?',
@@ -698,6 +698,79 @@ export class LanguageService {
     operationError: {
       en: 'An error occurred',
       fi: 'Tapahtui virhe'
+    },
+    // Projektin hallinta
+    createProject: {
+      en: 'Create Project',
+      fi: 'Luo projekti'
+    },
+    editProject: {
+      en: 'Edit Project',
+      fi: 'Muokkaa projektia'
+    },
+    deleteProject: {
+      en: 'Delete Project',
+      fi: 'Poista projekti'
+    },
+    
+    // Käyttäjähallinta
+    userManagement: {
+      en: 'User Management',
+      fi: 'Käyttäjähallinta'
+    },
+    createUser: {
+      en: 'Create User',
+      fi: 'Luo käyttäjä'
+    },
+    editUser: {
+      en: 'Edit User',
+      fi: 'Muokkaa käyttäjää'
+    },
+    deleteUser: {
+      en: 'Delete User',
+      fi: 'Poista käyttäjä'
+    },
+    confirmDeleteUser: {
+      en: 'Are you sure you want to delete this user?',
+      fi: 'Haluatko varmasti poistaa tämän käyttäjän?'
+    },
+    username: {
+      en: 'Username',
+      fi: 'Käyttäjätunnus'
+    },
+    password: {
+      en: 'Password',
+      fi: 'Salasana'
+    },
+    email: {
+      en: 'Email',
+      fi: 'Sähköposti'
+    },
+    role: {
+      en: 'Role',
+      fi: 'Rooli'
+    },
+    admin: {
+      en: 'Admin',
+      fi: 'Järjestelmänvalvoja'
+    },
+    user: {
+      en: 'User',
+      fi: 'Käyttäjä'
+    },
+    
+    // Käyttäjähallinnan lisäkäännökset
+    newUser: {
+      en: 'New User',
+      fi: 'Uusi käyttäjä'
+    },
+    accessDenied: {
+      en: 'Access Denied',
+      fi: 'Pääsy estetty'
+    },
+    adminOnlyAccess: {
+      en: 'Only administrators have access to this view.',
+      fi: 'Vain järjestelmänvalvojilla on pääsy tähän näkymään.'
     },
   };
   

@@ -20,9 +20,13 @@ export class CategoryService {
     } else {
       // Luodaan oletuskategoriat ensimmäisellä käynnistyskerralla
       const defaultCategories: Category[] = [
-        { id: '1', name: 'Work', color: CATEGORY_COLORS[0], description: 'Work related tasks' },
-        { id: '2', name: 'Personal', color: CATEGORY_COLORS[4], description: 'Personal tasks' },
-        { id: '3', name: 'Shopping', color: CATEGORY_COLORS[2], description: 'Shopping lists and tasks' }
+        { id: '1', name: 'Bug', color: CATEGORY_COLORS[0], description: 'Software bugs and issues' },
+        { id: '2', name: 'Feature Request', color: CATEGORY_COLORS[4], description: 'New feature requests and enhancements' },
+        { id: '3', name: 'Documentation', color: CATEGORY_COLORS[2], description: 'Documentation related tasks' },
+        { id: '4', name: 'Testing', color: CATEGORY_COLORS[3], description: 'Testing and QA tasks' },
+        { id: '5', name: 'UI/UX', color: CATEGORY_COLORS[7], description: 'User interface and experience tasks' },
+        { id: '6', name: 'DevOps', color: CATEGORY_COLORS[5], description: 'Infrastructure and deployment tasks' },
+        { id: '7', name: 'Security', color: CATEGORY_COLORS[6], description: 'Security related tasks and fixes' }
       ];
       this.saveCategories(defaultCategories);
     }
