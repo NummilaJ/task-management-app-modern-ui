@@ -8,4 +8,5 @@ export interface Project {
   color?: string; // Värikoodi projektin visuaalista tunnistamista varten
   deadline?: Date | null; // Projektin deadline
   startDate?: Date | null; // Projektin suunniteltu aloituspäivä
+  categoryIds?: string[]; // Projektikohtaiset kategoriat
 } 

@@ -168,7 +168,7 @@ import { LanguageService } from '../../services/language.service';
                             [(ngModel)]="editedTask.category"
                             class="input-field text-sm">
                       <option value="">{{ translate('noCategory') }}</option>
-                      <option *ngFor="let category of categories"
+                      <option *ngFor="let category of filteredCategories"
                               [value]="category.id">
                         {{category.name}}
                       </option>
@@ -195,6 +195,7 @@ import { LanguageService } from '../../services/language.service';
                     </svg>
                     <select *ngIf="isEditing && editedTask"
                             [(ngModel)]="editedTask.projectId"
+                            (change)="onProjectChange()"
                             class="input-field text-sm">
                       <option value="">Ei projektia</option>
                       <option *ngFor="let project of projects"
@@ -501,6 +502,10 @@ export class TaskModalComponent implements OnInit {
   isConfirmModalOpen = false;
   subtaskToDelete: Subtask | null = null;
   
+  // Kategorioiden käsittely
+  allCategories: Category[] = [];
+  filteredCategories: Category[] = [];
+  
   // Päivämäärien käsittely
   deadlineDate: string | null = null;
   scheduledDate: string | null = null;
@@ -519,6 +524,8 @@ export class TaskModalComponent implements OnInit {
   ngOnInit() {
     this.loadUsers();
     this.loadProjects();
+    this.allCategories = [...this.categories]; // Tallennetaan kaikki kategoriat
+    this.filteredCategories = [...this.categories]; // Alustetaan suodatetut kategoriat
   }
 
   loadUsers() {
@@ -645,6 +652,9 @@ export class TaskModalComponent implements OnInit {
     
     // Tarkistetaan projektin päivämäärät
     this.checkProjectDates();
+    
+    // Suodata kategoriat projektin mukaan
+    this.filterCategoriesByProject(this.editedTask.projectId);
     
     // Muunnetaan päivämäärät string-muotoon
     if (this.task.deadline) {
@@ -806,5 +816,44 @@ export class TaskModalComponent implements OnInit {
 
   translate(key: string): string {
     return this.languageService.translate(key);
+  }
+
+  // Suodattaa kategoriat projektin mukaan
+  filterCategoriesByProject(projectId: string | null) {
+    // Jos projektia ei ole valittu, näytetään kaikki kategoriat
+    if (!projectId) {
+      this.filteredCategories = [...this.allCategories];
+      return;
+    }
+    
+    // Etsi projekti
+    const project = this.projects.find(p => p.id === projectId);
+    if (!project || !project.categoryIds || project.categoryIds.length === 0) {
+      // Jos projektilla ei ole määriteltyjä kategorioita, näytetään kaikki
+      this.filteredCategories = [...this.allCategories];
+    } else {
+      // Näytetään vain projektin sallimat kategoriat
+      this.filteredCategories = this.allCategories.filter(
+        cat => project.categoryIds?.includes(cat.id)
+      );
+      
+      // Jos tehtävän kategoria ei kuulu projektille sallittuihin kategorioihin,
+      // poistetaan se
+      if (this.editedTask && this.editedTask.category && 
+          !project.categoryIds.includes(this.editedTask.category)) {
+        this.editedTask.category = null;
+      }
+    }
+  }
+  
+  // Käsittelee projektin vaihtumisen
+  onProjectChange() {
+    if (!this.editedTask) return;
+    
+    // Tarkista projektin päivämäärät
+    this.checkProjectDates();
+    
+    // Suodata kategoriat projektin mukaan
+    this.filterCategoriesByProject(this.editedTask.projectId);
   }
 } 

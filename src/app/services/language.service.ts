@@ -602,9 +602,9 @@ export class LanguageService {
       en: 'No deadline set', 
       fi: 'Ei määräaikaa' 
     },
-    noStartDate: { 
-      en: 'No start date set', 
-      fi: 'Ei aloituspäivää' 
+    noStartDate: {
+      en: 'No start date',
+      fi: 'Ei aloituspäivää'
     },
     noScheduledDate: { 
       en: 'No scheduled date', 
@@ -613,6 +613,46 @@ export class LanguageService {
     projectDateLock: {
       en: 'Date locked by project settings',
       fi: 'Päivämäärä lukittu projektin asetuksista'
+    },
+    projectCategories: {
+      en: 'Project Categories',
+      fi: 'Projektin kategoriat'
+    },
+    projectCategoriesHelp: {
+      en: 'Select which categories can be used in this project',
+      fi: 'Valitse mitkä kategoriat ovat käytettävissä tässä projektissa'
+    },
+    noProjectCategories: {
+      en: 'No categories selected for this project',
+      fi: 'Tälle projektille ei ole valittu kategorioita'
+    },
+    noCategories: {
+      en: 'No categories available',
+      fi: 'Ei saatavilla olevia kategorioita'
+    },
+    noDescription: {
+      en: 'No description',
+      fi: 'Ei kuvausta'
+    },
+    createNewProject: {
+      en: 'Create New Project',
+      fi: 'Luo uusi projekti'
+    },
+    activeProject: {
+      en: 'Active Project',
+      fi: 'Aktiivinen projekti'
+    },
+    projectColor: {
+      en: 'Project Color',
+      fi: 'Projektin väri'
+    },
+    colorSelected: {
+      en: 'Color selected. This color will be used for the project.',
+      fi: 'Väri valittu. Tätä väriä käytetään projektille.'
+    },
+    colorRandom: {
+      en: 'No color selected. A random color will be used.',
+      fi: 'Väriä ei valittu. Käytetään satunnaista väriä.'
     },
   };
   

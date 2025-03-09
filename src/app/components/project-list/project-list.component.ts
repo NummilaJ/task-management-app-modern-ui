@@ -7,6 +7,13 @@ import { ProjectService } from '../../services/project.service';
 import { Project } from '../../models/project.model';
 import { LanguageService } from '../../services/language.service';
 import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component';
+import { CategoryService } from '../../services/category.service';
+import { Category } from '../../models/category.model';
+
+// Laajennettu rajapinta kategoriavalinnoille
+interface CategoryWithSelected extends Category {
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-project-list',
@@ -28,10 +35,12 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 
         <!-- Projektin luontilomake -->
         <div *ngIf="isCreatingProject" 
-             class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6 border border-gray-200 dark:border-gray-600">
+             class="bg-gray-50 dark:bg-gray-700 rounded-lg p-5 mb-6 border border-blue-200 dark:border-blue-800 shadow-lg">
+          <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">{{ translate('createNewProject') }}</h3>
+          
           <div class="mb-4">
             <label for="projectName" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              {{ translate('projectName') }}
+              {{ translate('projectName') }} *
             </label>
             <input type="text" 
                    id="projectName" 
@@ -49,6 +58,64 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
                       rows="3"
                       class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
                       placeholder="{{ translate('enterProjectDescription') }}"></textarea>
+          </div>
+          
+          <!-- Värin valinta -->
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {{ translate('projectColor') }}
+            </label>
+            <div class="flex flex-wrap gap-2">
+              <div 
+                *ngFor="let color of availableColors" 
+                class="w-8 h-8 rounded-full cursor-pointer border-2 transition-all duration-200"
+                [style.backgroundColor]="color"
+                [style.borderColor]="selectedColor === color ? 'white' : color"
+                [class.ring-2]="selectedColor === color"
+                [class.ring-blue-500]="selectedColor === color"
+                [class.ring-offset-2]="selectedColor === color"
+                (click)="selectedColor = color">
+              </div>
+              <div 
+                class="w-8 h-8 rounded-full cursor-pointer border-2 border-dashed border-gray-400 flex items-center justify-center text-gray-500 dark:text-gray-400"
+                [class.ring-2]="selectedColor === null"
+                [class.ring-blue-500]="selectedColor === null"
+                (click)="selectedColor = null">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                </svg>
+              </div>
+            </div>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              {{ selectedColor ? translate('colorSelected') : translate('colorRandom') }}
+            </p>
+          </div>
+          
+          <!-- Projektikohtaiset kategoriat -->
+          <div class="mb-5 p-4 border border-blue-100 dark:border-blue-900 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+            <label class="block text-base font-semibold text-blue-800 dark:text-blue-300 mb-2">
+              {{ translate('projectCategories') }}
+            </label>
+            <p class="text-sm text-blue-700 dark:text-blue-400 mb-3">
+              {{ translate('projectCategoriesHelp') }}
+            </p>
+            
+            <div class="max-h-48 overflow-y-auto p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800">
+              <div *ngFor="let category of categoriesWithSelected" class="flex items-center mb-2">
+                <input type="checkbox" 
+                       [id]="'category-' + category.id" 
+                       [value]="category.id" 
+                       [(ngModel)]="category.selected"
+                       class="mr-2 h-4 w-4">
+                <label [for]="'category-' + category.id" class="flex items-center cursor-pointer">
+                  <div [style.backgroundColor]="category.color" class="w-4 h-4 rounded-full mr-2"></div>
+                  <span>{{ category.name }}</span>
+                </label>
+              </div>
+              <div *ngIf="categoriesWithSelected.length === 0" class="text-gray-500 dark:text-gray-400 text-sm py-2">
+                {{ translate('noCategories') }}
+              </div>
+            </div>
           </div>
           
           <!-- Aloituspäivämäärä -->
@@ -170,9 +237,23 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   isConfirmModalOpen = false;
   projectToDelete: string | null = null;
   
+  // Kategoriat
+  categories: Category[] = [];
+  categoriesWithSelected: CategoryWithSelected[] = [];
+  selectedCategories: string[] = [];
+  
   // Päivämääräkentät
   startDateInput: string | null = null;
   deadlineInput: string | null = null;
+
+  // Väripaletti projektille
+  availableColors: string[] = [
+    '#FF5252', '#FF4081', '#E040FB', '#7C4DFF', 
+    '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', 
+    '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', 
+    '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'
+  ];
+  selectedColor: string | null = null;
 
   private destroy$ = new Subject<void>();
   private languageSubscription: Subscription | null = null;
@@ -180,11 +261,13 @@ export class ProjectListComponent implements OnInit, OnDestroy {
   constructor(
     private projectService: ProjectService,
     private router: Router,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private categoryService: CategoryService
   ) {}
 
   ngOnInit(): void {
     this.loadProjects();
+    this.loadCategories();
   }
 
   ngOnDestroy(): void {
@@ -200,14 +283,31 @@ export class ProjectListComponent implements OnInit, OnDestroy {
       });
   }
 
+  loadCategories(): void {
+    this.categoryService.getCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(categories => {
+        this.categories = categories;
+        // Muunnetaan kategoriat laajennettuun muotoon
+        this.categoriesWithSelected = categories.map(cat => ({
+          ...cat,
+          selected: false
+        }));
+      });
+  }
+
   startCreatingProject(): void {
-    this.isCreatingProject = true;
     this.newProject = {
       name: '',
       description: '',
+      taskIds: []
     };
+    // Reset kategoriavalinnat
+    this.categoriesWithSelected.forEach(cat => cat.selected = false);
     this.startDateInput = null;
     this.deadlineInput = null;
+    this.selectedColor = null; // Reset värinvalinta
+    this.isCreatingProject = true;
   }
 
   cancelCreatingProject(): void {
@@ -215,29 +315,52 @@ export class ProjectListComponent implements OnInit, OnDestroy {
     this.newProject = {};
     this.startDateInput = null;
     this.deadlineInput = null;
+    this.selectedColor = null; // Reset värinvalinta
   }
 
   createProject(): void {
-    if (!this.newProject.name?.trim()) {
-      return;
+    if (!this.newProject.name) return;
+    
+    // Kerää valitut kategoriat
+    const selectedCategoryIds = this.categoriesWithSelected
+      .filter(cat => cat.selected)
+      .map(cat => cat.id);
+    
+    // Varmista, että kategoria-ID:t ovat määritelty vain jos niitä on valittu
+    const categoryIds = selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined;
+    
+    // Kopioi ensin uusi projekti olioon
+    const projectData: Partial<Project> = {
+      ...this.newProject,
+      taskIds: []
+    };
+    
+    // Lisää kategoriat erikseen
+    if (selectedCategoryIds.length > 0) {
+      projectData.categoryIds = selectedCategoryIds;
     }
     
-    // Lisää päivämäärät projektiin
+    // Aseta päivämäärät jos annettu
     if (this.startDateInput) {
-      this.newProject.startDate = new Date(this.startDateInput);
+      projectData.startDate = new Date(this.startDateInput);
     }
     
     if (this.deadlineInput) {
-      this.newProject.deadline = new Date(this.deadlineInput);
+      projectData.deadline = new Date(this.deadlineInput);
+    }
+
+    // Aseta väri jos valittu
+    if (this.selectedColor) {
+      projectData.color = this.selectedColor;
     }
     
-    this.projectService.addProject(this.newProject)
+    // Luo projekti
+    this.projectService.addProject(projectData)
       .pipe(takeUntil(this.destroy$))
       .subscribe(() => {
         this.isCreatingProject = false;
-        this.newProject = { name: '', description: '' };
-        this.startDateInput = null;
-        this.deadlineInput = null;
+        this.selectedColor = null; // Reset värinvalinta
+        console.log('Project created with categories:', projectData.categoryIds);
       });
   }
 

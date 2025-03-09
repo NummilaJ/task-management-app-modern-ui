@@ -9,6 +9,9 @@ import { Project } from '../../models/project.model';
 import { Task } from '../../models/task.model';
 import { TaskListComponent } from '../task-list/task-list.component';
 import { LanguageService } from '../../services/language.service';
+import { CategoryService } from '../../services/category.service';
+import { Category } from '../../models/category.model';
+import { ProjectContextService } from '../../services/project-context.service';
 
 @Component({
   selector: 'app-project-tasks',
@@ -41,8 +44,135 @@ import { LanguageService } from '../../services/language.service';
         </div>
         
         <div *ngIf="project && project.description" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-          <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">{{ translate('description') }}</h3>
-          <p class="text-gray-600 dark:text-gray-300">{{ project.description }}</p>
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('description') }}</h3>
+            <button *ngIf="!editingDescription" (click)="editDescription()" class="text-blue-500 hover:text-blue-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+              </svg>
+            </button>
+          </div>
+          <div *ngIf="!editingDescription">
+            <p class="text-gray-600 dark:text-gray-300 whitespace-pre-line">{{ project.description }}</p>
+          </div>
+          <div *ngIf="editingDescription" class="mt-2">
+            <textarea 
+              [(ngModel)]="descriptionInput" 
+              rows="4" 
+              class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            </textarea>
+            <div class="flex gap-2 mt-2">
+              <button (click)="saveDescription()" class="btn-xs btn-success">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+              <button (click)="cancelEditDescription()" class="btn-xs btn-danger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Näytetään tyhjä kuvaus muokkausnappulalla jos projektilla ei ole kuvausta -->
+        <div *ngIf="project && !project.description" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('description') }}</h3>
+            <button *ngIf="!editingDescription" (click)="editDescription()" class="text-blue-500 hover:text-blue-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+              </svg>
+            </button>
+          </div>
+          <div *ngIf="!editingDescription">
+            <p class="text-gray-500 dark:text-gray-400 italic">{{ translate('noDescription') }}</p>
+          </div>
+          <div *ngIf="editingDescription" class="mt-2">
+            <textarea 
+              [(ngModel)]="descriptionInput" 
+              rows="4" 
+              class="w-full p-2 rounded-md border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+            </textarea>
+            <div class="flex gap-2 mt-2">
+              <button (click)="saveDescription()" class="btn-xs btn-success">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+              <button (click)="cancelEditDescription()" class="btn-xs btn-danger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Projektin kategoriat -->
+        <div *ngIf="project" class="mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+          <div class="flex justify-between items-center mb-2">
+            <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('projectCategories') }}</h3>
+            <button *ngIf="!editingCategories" (click)="editCategories()" class="text-blue-500 hover:text-blue-700">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Näytetään projektin kategoriat -->
+          <div *ngIf="!editingCategories">
+            <div *ngIf="projectCategories.length > 0" class="flex flex-wrap gap-2">
+              <div *ngFor="let category of projectCategories" 
+                   class="px-2 py-1 rounded-full flex items-center"
+                   [style.backgroundColor]="category.color + '33'"
+                   [style.borderColor]="category.color"
+                   style="border-width: 1px;">
+                <div [style.backgroundColor]="category.color" class="w-2 h-2 rounded-full mr-1"></div>
+                <span class="text-sm" [style.color]="category.color">{{ category.name }}</span>
+              </div>
+            </div>
+            <p *ngIf="projectCategories.length === 0" class="text-gray-500 dark:text-gray-400 italic">
+              {{ translate('noProjectCategories') }}
+            </p>
+          </div>
+          
+          <!-- Kategoriavalintalista -->
+          <div *ngIf="editingCategories" class="mt-2">
+            <div class="max-h-48 overflow-y-auto p-2 border border-gray-300 dark:border-gray-600 rounded-md 
+                       bg-white dark:bg-gray-800">
+              <div *ngFor="let category of allCategories" class="flex items-center mb-2">
+                <input type="checkbox" 
+                       [id]="'category-' + category.id" 
+                       [checked]="isCategorySelected(category.id)"
+                       (change)="toggleCategory(category.id)"
+                       class="mr-2">
+                <label [for]="'category-' + category.id" class="flex items-center cursor-pointer">
+                  <div [style.backgroundColor]="category.color" class="w-3 h-3 rounded-full mr-2"></div>
+                  <span>{{ category.name }}</span>
+                </label>
+              </div>
+              <div *ngIf="allCategories.length === 0" class="text-gray-500 dark:text-gray-400 text-sm py-2">
+                {{ translate('noCategories') }}
+              </div>
+            </div>
+            <div class="flex gap-2 mt-2">
+              <button (click)="saveCategories()" class="btn-xs btn-success">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </button>
+              <button (click)="cancelEditCategories()" class="btn-xs btn-danger">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
         
         <div class="flex flex-wrap gap-4 mb-6">
@@ -169,8 +299,16 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
   // Päivämääräkenttien muokkaus
   editingStartDate = false;
   editingDeadline = false;
+  editingDescription = false;
+  editingCategories = false;
   startDateInput: string | null = null;
   deadlineInput: string | null = null;
+  descriptionInput: string = '';
+  
+  // Kategoriat
+  categories: Category[] = [];
+  projectCategories: Category[] = [];
+  allCategories: Category[] = [];
 
   private destroy$ = new Subject<void>();
 
@@ -179,20 +317,22 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
     private router: Router,
     private projectService: ProjectService,
     private taskService: TaskService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private categoryService: CategoryService,
+    private projectContextService: ProjectContextService
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        this.projectId = params.get('id');
-        if (this.projectId) {
-          this.loadProjectAndTasks(this.projectId);
-        } else {
-          this.router.navigate(['/projects']);
-        }
-      });
+    this.route.params.subscribe(params => {
+      const id = params['id'];
+      if (id) {
+        this.projectId = id;
+        this.loadProjectAndTasks(id);
+        this.loadCategories();
+      } else {
+        this.router.navigate(['/projects']);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -203,23 +343,46 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
   loadProjectAndTasks(projectId: string): void {
     this.loading = true;
     
-    combineLatest([
-      this.projectService.getProjectById(projectId),
-      this.taskService.getTasks()
-    ])
-    .pipe(takeUntil(this.destroy$))
-    .subscribe(([project, tasks]) => {
-      this.project = project;
-      
-      if (project) {
-        this.projectTasks = tasks.filter(task => task.projectId === projectId);
-      } else {
-        this.projectTasks = [];
-        this.router.navigate(['/projects']);
-      }
-      
-      this.loading = false;
-    });
+    const project$ = this.projectService.getProjectById(projectId);
+    const tasks$ = this.taskService.getTasks();
+    
+    combineLatest([project$, tasks$])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(([project, tasks]) => {
+        this.project = project;
+        
+        if (project) {
+          // Aseta aktiivinen projekti kun projektin tiedot ladataan
+          this.projectContextService.setActiveProject(project);
+          
+          this.projectTasks = tasks.filter(task => task.projectId === projectId);
+          this.updateProjectCategories();
+        } else {
+          this.projectTasks = [];
+          this.router.navigate(['/projects']);
+        }
+        
+        this.loading = false;
+      });
+  }
+  
+  loadCategories(): void {
+    this.categoryService.getCategories()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(categories => {
+        this.allCategories = categories;
+        this.updateProjectCategories();
+      });
+  }
+  
+  updateProjectCategories(): void {
+    if (this.project && this.project.categoryIds && this.allCategories.length > 0) {
+      this.projectCategories = this.allCategories.filter(
+        category => this.project?.categoryIds?.includes(category.id)
+      );
+    } else {
+      this.projectCategories = this.allCategories;
+    }
   }
 
   goBack(): void {
@@ -309,5 +472,92 @@ export class ProjectTasksComponent implements OnInit, OnDestroy {
   cancelEditDeadline(): void {
     this.editingDeadline = false;
     this.deadlineInput = null;
+  }
+
+  // Projektin kuvaus
+  editDescription(): void {
+    this.descriptionInput = this.project?.description || '';
+    this.editingDescription = true;
+  }
+  
+  saveDescription(): void {
+    if (!this.project) return;
+    
+    const updatedProject: Project = {
+      ...this.project,
+      description: this.descriptionInput.trim()
+    };
+    
+    this.projectService.updateProject(updatedProject)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(project => {
+        this.project = project;
+        this.editingDescription = false;
+      });
+  }
+  
+  cancelEditDescription(): void {
+    this.editingDescription = false;
+  }
+  
+  // Projektin kategoriat
+  editCategories(): void {
+    this.editingCategories = true;
+  }
+  
+  toggleCategory(categoryId: string): void {
+    if (!this.project) return;
+    
+    if (!this.project.categoryIds) {
+      this.project = {
+        ...this.project,
+        categoryIds: [categoryId]
+      };
+      return;
+    }
+    
+    const currentCategoryIds = [...this.project.categoryIds];
+    
+    if (currentCategoryIds.includes(categoryId)) {
+      this.project = {
+        ...this.project,
+        categoryIds: currentCategoryIds.filter(id => id !== categoryId)
+      };
+    } else {
+      this.project = {
+        ...this.project,
+        categoryIds: [...currentCategoryIds, categoryId]
+      };
+    }
+  }
+  
+  isCategorySelected(categoryId: string): boolean {
+    return this.project?.categoryIds?.includes(categoryId) || false;
+  }
+  
+  saveCategories(): void {
+    if (!this.project) return;
+    
+    this.projectService.updateProject(this.project)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(project => {
+        this.project = project;
+        this.updateProjectCategories();
+        this.editingCategories = false;
+      });
+  }
+  
+  cancelEditCategories(): void {
+    // Palauta alkuperäinen projekti-objekti
+    if (this.projectId) {
+      this.projectService.getProjectById(this.projectId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe(project => {
+          this.project = project;
+          this.editingCategories = false;
+        });
+    } else {
+      this.editingCategories = false;
+    }
   }
 } 

@@ -12,6 +12,7 @@ import { Project } from '../../models/project.model';
 import { User } from '../../models/user.model';
 import { LanguageService } from '../../services/language.service';
 import { Subscription } from 'rxjs';
+import { ProjectContextService } from '../../services/project-context.service';
 
 @Component({
   selector: 'app-task-list',
@@ -53,6 +54,17 @@ import { Subscription } from 'rxjs';
                         class="mt-1 block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
                         placeholder="{{ translate('enterTaskDescription') }}" rows="3"></textarea>
             </div>
+            
+            <!-- Project - siirretty ensimmäiseksi valinnaksi -->
+            <div class="col-span-2">
+              <label for="project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
+              <select id="project" name="project" [(ngModel)]="newTask.projectId"
+                      (change)="onProjectChange()"
+                      class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
+                <option [value]="null">{{ translate('noProject') }}</option>
+                <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+              </select>
+            </div>
 
             <!-- Assignee -->
             <div>
@@ -79,33 +91,31 @@ import { Subscription } from 'rxjs';
               <select id="category" name="category" [(ngModel)]="newTask.category"
                       class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
                 <option [value]="null">{{ translate('noCategory') }}</option>
-                <option *ngFor="let category of categories" [value]="category.id">{{ category.name }}</option>
-              </select>
-            </div>
-            
-            <!-- Project -->
-            <div class="col-span-1">
-              <label for="project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
-              <select id="project" name="project" [(ngModel)]="newTask.projectId"
-                      class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all">
-                <option [value]="null">{{ translate('noProject') }}</option>
-                <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+                <option *ngFor="let category of filteredCategories" [value]="category.id">{{ category.name }}</option>
               </select>
             </div>
             
             <!-- Scheduled Date -->
             <div class="col-span-1">
-              <label for="scheduledDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('scheduledDate') }}</label>
+              <div class="flex justify-between items-center">
+                <label for="scheduledDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('scheduledDate') }}</label>
+                <span *ngIf="datesLockedByProject" class="text-xs text-amber-500 dark:text-amber-400">{{ translate('projectDateLock') }}</span>
+              </div>
               <input type="date" id="scheduledDate" name="scheduledDate" [(ngModel)]="scheduledDate" 
-                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                     [disabled]="datesLockedByProject"
+                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                      placeholder="{{ translate('setScheduledDate') }}">
             </div>
             
             <!-- Deadline -->
             <div class="col-span-1">
-              <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('deadline') }}</label>
+              <div class="flex justify-between items-center">
+                <label for="deadline" class="block text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('deadline') }}</label>
+                <span *ngIf="datesLockedByProject" class="text-xs text-amber-500 dark:text-amber-400">{{ translate('projectDateLock') }}</span>
+              </div>
               <input type="date" id="deadline" name="deadline" [(ngModel)]="deadlineDate" 
-                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                     [disabled]="datesLockedByProject"
+                     class="mt-1 block w-full h-12 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                      placeholder="{{ translate('setDeadline') }}">
             </div>
 
@@ -138,9 +148,16 @@ export class TaskListComponent implements OnInit, OnDestroy {
   taskPriorities = Object.values(TaskPriority);
   private languageSubscription: Subscription | null = null;
   
+  // Kategorioiden hallinta
+  allCategories: Category[] = [];
+  filteredCategories: Category[] = [];
+  
   // Aikataulutusta varten
   deadlineDate: string | null = null;
   scheduledDate: string | null = null;
+  
+  // Päivämäärien lukitus projektin mukaan
+  datesLockedByProject = false;
 
   newTask: Task = {
     id: '',
@@ -168,6 +185,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private projectService: ProjectService,
     private languageService: LanguageService,
+    private projectContextService: ProjectContextService,
     private route: ActivatedRoute
   ) {}
 
@@ -177,11 +195,57 @@ export class TaskListComponent implements OnInit, OnDestroy {
     this.loadProjects();
     this.getCurrentUser();
     
+    // Tilataan aktiivinen projekti
+    this.projectContextService.activeProject$.subscribe(project => {
+      // Jos aktiivinen projekti vaihtuu, päivitetään tehtävän projekti
+      if (project) {
+        // Aseta projekti vain jos projektia ei ole jo valittu (URL parametri tai aiempi valinta)
+        // Tämä estää projektikontekstin vaihtumisen tahattomasti
+        if (!this.newTask.projectId) {
+          this.newTask.projectId = project.id;
+          // Päivitä kategoriat projektin mukaan
+          this.filterCategoriesByProject();
+        }
+        
+        // Tarkista pitääkö päivämäärät lukita
+        this.datesLockedByProject = !!(project.startDate || project.deadline);
+        
+        // Aseta projektin päivämäärät
+        if (project.startDate) {
+          const startDate = new Date(project.startDate);
+          // Muotoile päivämäärä YYYY-MM-DD -muotoon
+          const year = startDate.getFullYear();
+          const month = String(startDate.getMonth() + 1).padStart(2, '0');
+          const day = String(startDate.getDate()).padStart(2, '0');
+          this.scheduledDate = `${year}-${month}-${day}`;
+        }
+        
+        if (project.deadline) {
+          const deadline = new Date(project.deadline);
+          // Muotoile päivämäärä YYYY-MM-DD -muotoon
+          const year = deadline.getFullYear();
+          const month = String(deadline.getMonth() + 1).padStart(2, '0');
+          const day = String(deadline.getDate()).padStart(2, '0');
+          this.deadlineDate = `${year}-${month}-${day}`;
+        }
+      } else {
+        // Jos projektia ei ole valittu, poista lukitus
+        this.datesLockedByProject = false;
+      }
+    });
+    
     // Tarkistetaan onko query-parametreissa määritelty projekti
     this.route.queryParams.subscribe(params => {
       const projectId = params['projectId'];
       if (projectId) {
         this.newTask.projectId = projectId;
+        this.filterCategoriesByProject();
+        
+        // Päivitä myös projektikonteksti
+        const selectedProject = this.projects.find(p => p.id === projectId);
+        if (selectedProject) {
+          this.projectContextService.setActiveProject(selectedProject);
+        }
       }
     });
     
@@ -202,7 +266,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   loadCategories() {
     this.categoryService.getCategories().subscribe(categories => {
-      this.categories = categories;
+      this.allCategories = categories;
+      this.filteredCategories = [...categories]; // Aluksi näytetään kaikki kategoriat
+      this.filterCategoriesByProject();
     });
   }
   
@@ -221,9 +287,78 @@ export class TaskListComponent implements OnInit, OnDestroy {
   loadProjects() {
     this.projectService.getProjects().subscribe(projects => {
       this.projects = projects;
+      this.filterCategoriesByProject();
     });
   }
   
+  filterCategoriesByProject() {
+    // Ladataan ensin kaikki kategoriat uudelleen
+    if (!this.newTask.projectId) {
+      // Jos projektia ei ole valittu, näytetään kaikki kategoriat
+      this.filteredCategories = [...this.allCategories];
+      return;
+    }
+    
+    // Etsi projekti
+    const selectedProject = this.projects.find(p => p.id === this.newTask.projectId);
+    
+    if (selectedProject && selectedProject.categoryIds && selectedProject.categoryIds.length > 0) {
+      // Näytetään vain projektin sallimat kategoriat
+      this.filteredCategories = this.allCategories.filter(cat => 
+        selectedProject.categoryIds?.includes(cat.id)
+      );
+      
+      // Jos tehtävän kategoria ei kuulu projektin sallittuihin kategorioihin, poistetaan se
+      if (this.newTask.category && !selectedProject.categoryIds.includes(this.newTask.category)) {
+        this.newTask.category = null;
+      }
+    } else {
+      // Jos projektilla ei ole määriteltyjä kategorioita, näytetään kaikki
+      this.filteredCategories = [...this.allCategories];
+    }
+  }
+  
+  onProjectChange() {
+    // Suodata kategoriat projektin mukaan
+    this.filterCategoriesByProject();
+    
+    // Tarkista, onko valitulla projektilla päivämääriä, joita käyttää
+    if (this.newTask.projectId) {
+      const selectedProject = this.projects.find(p => p.id === this.newTask.projectId);
+      
+      if (selectedProject) {
+        // Tarkista pitääkö päivämäärät lukita
+        this.datesLockedByProject = !!(selectedProject.startDate || selectedProject.deadline);
+        
+        // Jos projektilla on startDate, käytä sitä oletuksena
+        if (selectedProject.startDate) {
+          const startDate = new Date(selectedProject.startDate);
+          // Muotoile päivämäärä YYYY-MM-DD -muotoon
+          const year = startDate.getFullYear();
+          const month = String(startDate.getMonth() + 1).padStart(2, '0');
+          const day = String(startDate.getDate()).padStart(2, '0');
+          this.scheduledDate = `${year}-${month}-${day}`;
+        }
+        
+        // Jos projektilla on deadline, käytä sitä oletuksena
+        if (selectedProject.deadline) {
+          const deadline = new Date(selectedProject.deadline);
+          // Muotoile päivämäärä YYYY-MM-DD -muotoon
+          const year = deadline.getFullYear();
+          const month = String(deadline.getMonth() + 1).padStart(2, '0');
+          const day = String(deadline.getDate()).padStart(2, '0');
+          this.deadlineDate = `${year}-${month}-${day}`;
+        }
+      } else {
+        // Jos projektia ei löydy, poista lukitus
+        this.datesLockedByProject = false;
+      }
+    } else {
+      // Jos projektia ei ole valittu, poista lukitus
+      this.datesLockedByProject = false;
+    }
+  }
+
   getProjectName(projectId: string | null): string {
     if (!projectId) return this.translate('noProject');
     const project = this.projects.find(p => p.id === projectId);
@@ -235,25 +370,46 @@ export class TaskListComponent implements OnInit, OnDestroy {
       // Asetetaan tehtävän luoja
       this.newTask.createdBy = this.currentUser?.id || null;
       
-      // Päivitetään deadline ja scheduledDate päivämäärät
-      if (this.deadlineDate) {
-        this.newTask.deadline = new Date(this.deadlineDate);
+      // Päivitetään deadline ja scheduledDate päivämäärät vain jos ne eivät ole lukittuja projektin takia
+      if (!this.datesLockedByProject) {
+        if (this.deadlineDate) {
+          this.newTask.deadline = new Date(this.deadlineDate);
+        } else {
+          this.newTask.deadline = null;
+        }
+        
+        if (this.scheduledDate) {
+          this.newTask.scheduledDate = new Date(this.scheduledDate);
+        } else {
+          this.newTask.scheduledDate = null;
+        }
       } else {
-        this.newTask.deadline = null;
+        // Jos päivämäärät ovat lukittuja, käytä projektin päivämääriä
+        const selectedProject = this.projects.find(p => p.id === this.newTask.projectId);
+        if (selectedProject) {
+          this.newTask.deadline = selectedProject.deadline ? new Date(selectedProject.deadline) : null;
+          this.newTask.scheduledDate = selectedProject.startDate ? new Date(selectedProject.startDate) : null;
+        }
       }
       
-      if (this.scheduledDate) {
-        this.newTask.scheduledDate = new Date(this.scheduledDate);
-      } else {
-        this.newTask.scheduledDate = null;
+      // Tallenna projekti kontekstissa, jos se on valittu
+      if (this.newTask.projectId) {
+        const selectedProject = this.projects.find(p => p.id === this.newTask.projectId);
+        if (selectedProject) {
+          this.projectContextService.setActiveProject(selectedProject);
+        }
       }
       
       this.taskService.addTask(this.newTask);
       this.resetForm();
+      this.taskChanged.emit(); // Ilmoita tehtävän muutoksesta
     }
   }
 
   resetForm() {
+    // Tallenna nykyinen projekti-ID, jotta se säilyy lomakkeen tyhjentämisen jälkeen
+    const currentProjectId = this.newTask.projectId;
+    
     this.newTask = {
       id: '',
       title: '',
@@ -262,7 +418,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
       state: TaskState.TO_DO,
       priority: TaskPriority.MEDIUM,
       category: null,
-      projectId: null,
+      projectId: currentProjectId, // Säilytä sama projekti
       createdAt: new Date(),
       createdBy: null,
       deadline: null,
@@ -272,8 +428,14 @@ export class TaskListComponent implements OnInit, OnDestroy {
       progress: 0
     };
     
-    // Nollataan myös päivämääräkentät
+    // Nollataan päivämääräkentät, mutta säilytetään tieto lukituksesta
     this.deadlineDate = null;
     this.scheduledDate = null;
+    
+    // Jos projekti on valittu, kutsutaan projektinvaihto-metodia päivämäärien ja kategorioiden 
+    // uudelleenasettamiseksi projektin mukaan
+    if (currentProjectId) {
+      this.onProjectChange();
+    }
   }
 } 

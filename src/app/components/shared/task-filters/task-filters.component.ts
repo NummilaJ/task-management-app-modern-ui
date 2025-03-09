@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit, OnDestroy, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TaskState, TaskPriority } from '../../../models/task.model';
@@ -26,19 +26,6 @@ export interface FilterOptions {
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ translate('filterSettings') }}</h3>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Project Filter -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
-          <select [(ngModel)]="selectedProject" 
-                  (change)="applyFilters()"
-                  class="filter-select">
-            <option [ngValue]="null">{{ translate('allProjects') }}</option>
-            <option *ngFor="let project of projects" [ngValue]="project.id">
-              {{ project.name }}
-            </option>
-          </select>
-        </div>
-        
         <!-- My Tasks Filter -->
         <div class="space-y-2">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('myTasks') }}</label>
@@ -96,8 +83,21 @@ export interface FilterOptions {
                   (change)="applyFilters()"
                   class="filter-select">
             <option [ngValue]="null">{{ translate('allCategories') }}</option>
-            <option *ngFor="let cat of categories" [ngValue]="cat.id">
+            <option *ngFor="let cat of filteredCategories" [ngValue]="cat.id">
               {{ cat.name }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Project Filter -->
+        <div *ngIf="showProjectFilter" class="space-y-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
+          <select [(ngModel)]="selectedProject"
+                  (change)="onProjectChange()"
+                  class="filter-select">
+            <option [ngValue]="null">{{ translate('allProjects') }}</option>
+            <option *ngFor="let project of projects" [ngValue]="project.id">
+              {{ project.name }}
             </option>
           </select>
         </div>
@@ -145,8 +145,9 @@ export interface FilterOptions {
     }
   `]
 })
-export class TaskFiltersComponent implements OnInit, OnDestroy {
+export class TaskFiltersComponent implements OnInit, OnChanges, OnDestroy {
   @Input() showStateFilter: boolean = true;
+  @Input() showProjectFilter: boolean = true;
   @Input() taskStates = Object.values(TaskState);
   @Input() taskPriorities = Object.values(TaskPriority);
   @Input() categories: Category[] = [];
@@ -162,15 +163,28 @@ export class TaskFiltersComponent implements OnInit, OnDestroy {
 
   @Output() filtersChanged = new EventEmitter<FilterOptions>();
 
+  // Suodatetut kategoriat projektin mukaan
+  filteredCategories: Category[] = [];
+
   private langSubscription: Subscription | null = null;
 
   constructor(private languageService: LanguageService) {}
 
   ngOnInit() {
+    // Alusta suodatetut kategoriat
+    this.updateFilteredCategories();
+    
     // Kuunnellaan kielen vaihtumista, jotta komponentti päivittyy automaattisesti
     this.langSubscription = this.languageService.currentLanguage$.subscribe(() => {
       // Komponentti päivittyy automaattisesti kun Angular havaitsee muutoksen
     });
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    // Jos kategoriat tai projektit muuttuvat, päivitä suodatetut kategoriat
+    if (changes['categories'] || changes['projects'] || changes['selectedProject']) {
+      this.updateFilteredCategories();
+    }
   }
 
   ngOnDestroy() {
@@ -184,16 +198,52 @@ export class TaskFiltersComponent implements OnInit, OnDestroy {
     return this.languageService.translate(key);
   }
 
+  onProjectChange() {
+    // Päivitä suodatetut kategoriat kun projekti vaihtuu
+    this.updateFilteredCategories();
+    
+    // Tyhjennä kategoriavalinta jos valittu kategoria ei kuulu projektin kategorioihin
+    if (this.selectedProject && this.selectedCategory) {
+      const selectedProject = this.projects.find(p => p.id === this.selectedProject);
+      if (selectedProject && selectedProject.categoryIds && 
+          !selectedProject.categoryIds.includes(this.selectedCategory)) {
+        this.selectedCategory = null;
+      }
+    }
+    
+    // Käynnistä suodattimien päivitys
+    this.applyFilters();
+  }
+
+  updateFilteredCategories() {
+    // Jos projekti on valittu ja sillä on omat kategoriat
+    if (this.selectedProject) {
+      const selectedProject = this.projects.find(p => p.id === this.selectedProject);
+      if (selectedProject && selectedProject.categoryIds && selectedProject.categoryIds.length > 0) {
+        // Näytä vain projektin kategoriat
+        this.filteredCategories = this.categories.filter(cat => 
+          selectedProject.categoryIds?.includes(cat.id)
+        );
+        return;
+      }
+    }
+    
+    // Muussa tapauksessa näytä kaikki kategoriat
+    this.filteredCategories = [...this.categories];
+  }
+
   applyFilters() {
-    this.filtersChanged.emit({
-      state: this.selectedState,
-      priority: this.selectedPriority,
+    const filters: FilterOptions = {
+      state: this.selectedState.length > 0 ? this.selectedState : null,
+      priority: this.selectedPriority.length > 0 ? this.selectedPriority : null,
       category: this.selectedCategory,
       project: this.selectedProject,
       assigneeFilter: this.selectedAssigneeFilter,
       sortBy: this.sortBy,
       sortDirection: this.sortDirection
-    });
+    };
+    
+    this.filtersChanged.emit(filters);
   }
 
   toggleSortDirection() {
@@ -209,6 +259,10 @@ export class TaskFiltersComponent implements OnInit, OnDestroy {
     this.selectedAssigneeFilter = null;
     this.sortBy = 'createdAt';
     this.sortDirection = true;
+    
+    // Päivitä kategoriat
+    this.updateFilteredCategories();
+    
     this.applyFilters();
   }
 } 

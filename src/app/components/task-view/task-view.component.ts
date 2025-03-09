@@ -15,6 +15,7 @@ import { ConfirmModalComponent } from '../confirm-modal/confirm-modal.component'
 import { TaskFiltersComponent, FilterOptions } from '../shared/task-filters/task-filters.component';
 import { Observable, Subscription } from 'rxjs';
 import { LanguageService } from '../../services/language.service';
+import { ProjectContextService } from '../../services/project-context.service';
 
 @Component({
   selector: 'app-task-view',
@@ -57,6 +58,7 @@ import { LanguageService } from '../../services/language.service';
           [selectedAssigneeFilter]="selectedAssigneeFilter"
           [sortBy]="sortBy"
           [sortDirection]="sortDirection"
+          [showProjectFilter]="false"
           (filtersChanged)="handleFiltersChanged($event)">
         </app-task-filters>
       </div>
@@ -380,6 +382,7 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private projectService: ProjectService,
     private languageService: LanguageService,
+    private projectContextService: ProjectContextService,
     private route: ActivatedRoute
   ) {}
   
@@ -387,25 +390,25 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     this.loadTasks();
     this.loadCategories();
     this.loadUsers();
-    this.getCurrentUser();
     this.loadProjects();
+    this.getCurrentUser();
     
-    // Kuuntele URL-parametreja mahdollisen tehtävä-ID:n varalta
-    this.route.params.subscribe(params => {
-      const taskId = params['id'];
-      if (taskId) {
-        // Jos ID on URL:ssa, haetaan tehtävä ja avataan se modaalissa
-        console.log('Avaamassa tehtävää ID:llä:', taskId);
-        this.taskService.getTaskById(taskId).subscribe(task => {
-          if (task) {
-            this.openTaskModal(task);
-          }
-        });
+    // Tilataan aktiivinen projekti
+    this.projectContextService.activeProject$.subscribe(project => {
+      if (project) {
+        // Jos aktiivinen projekti vaihtuu, päivitetään projektisuodatin
+        this.selectedProject = project.id;
+      } else {
+        // Jos aktiivinen projekti tyhjennetään, näytetään kaikki tehtävät
+        this.selectedProject = null;
       }
+      
+      // Päivitä suodattimet ja tehtävät
+      this.applyFilters();
     });
     
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
-      // Tämä päivittää komponentin kun kieli vaihtuu
+      // Päivitä näkymä kun kieli vaihtuu
     });
   }
   
@@ -629,16 +632,12 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   }
 
   handleFiltersChanged(filters: FilterOptions) {
-    if (filters.state) this.selectedStates = filters.state as TaskState[];
-    if (filters.priority) this.selectedPriorities = filters.priority as TaskPriority[];
-    
-    // Käsitellään null-arvot oikein
+    this.selectedStates = filters.state || [];
+    this.selectedPriorities = filters.priority || [];
     this.selectedCategory = filters.category !== undefined ? filters.category : null;
-    this.selectedProject = filters.project !== undefined ? filters.project : null;
     this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
-    
-    if (filters.sortBy) this.sortBy = filters.sortBy;
-    if (filters.sortDirection !== undefined) this.sortDirection = filters.sortDirection;
+    this.sortBy = filters.sortBy || this.sortBy;
+    this.sortDirection = filters.sortDirection !== undefined ? filters.sortDirection : this.sortDirection;
     
     this.applyFilters();
   }

@@ -78,7 +78,8 @@ export class ProjectService {
       taskIds: [],
       color: project.color || this.getRandomColor(),
       startDate: project.startDate || null,
-      deadline: project.deadline || null
+      deadline: project.deadline || null,
+      categoryIds: project.categoryIds || []
     };
 
     const updatedProjects = [...this.projects.value, newProject];

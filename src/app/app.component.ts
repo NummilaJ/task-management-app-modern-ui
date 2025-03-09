@@ -10,11 +10,12 @@ import { Subscription } from 'rxjs';
 import { LanguageService } from './services/language.service';
 import { LanguageSelectorComponent } from './components/language-selector/language-selector.component';
 import { ThemeService } from './services/theme.service';
+import { ProjectSelectorComponent } from './components/shared/project-selector/project-selector.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterModule, LanguageSelectorComponent],
+  imports: [CommonModule, RouterModule, LanguageSelectorComponent, ProjectSelectorComponent],
   template: `
     <div class="min-h-screen bg-gray-50 dark:bg-gray-900 flex">
       <!-- Sidebar -->
@@ -36,6 +37,11 @@ import { ThemeService } from './services/theme.service';
               </svg>
             </button>
           </div>
+        </div>
+        
+        <!-- Aktiivinen projekti -->
+        <div class="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+          <app-project-selector></app-project-selector>
         </div>
         
         <div class="py-6 px-4">

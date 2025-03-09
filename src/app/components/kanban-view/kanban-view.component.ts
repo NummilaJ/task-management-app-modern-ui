@@ -15,6 +15,7 @@ import { TaskFiltersComponent, FilterOptions } from '../shared/task-filters/task
 import { RouterModule } from '@angular/router';
 import { LanguageService } from '../../services/language.service';
 import { Subscription } from 'rxjs';
+import { ProjectContextService } from '../../services/project-context.service';
 
 @Component({
   selector: 'app-kanban-view',
@@ -54,6 +55,7 @@ import { Subscription } from 'rxjs';
         <!-- Suodattimet -->
         <app-task-filters
           [showStateFilter]="false"
+          [showProjectFilter]="false"
           [categories]="categories"
           [projects]="projects"
           [taskPriorities]="taskPriorities"
@@ -429,7 +431,8 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     private categoryService: CategoryService,
     private authService: AuthService,
     private projectService: ProjectService,
-    private languageService: LanguageService
+    private languageService: LanguageService,
+    private projectContextService: ProjectContextService
   ) {}
   
   ngOnInit() {
@@ -438,8 +441,23 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     this.loadProjects();
     this.loadUsers();
     this.getCurrentUser();
+    
+    // Tilataan aktiivinen projekti
+    this.projectContextService.activeProject$.subscribe(project => {
+      if (project) {
+        // Jos aktiivinen projekti vaihtuu, päivitetään projektisuodatin
+        this.selectedProject = project.id;
+      } else {
+        // Jos aktiivinen projekti tyhjennetään, näytetään kaikki tehtävät
+        this.selectedProject = null;
+      }
+      
+      // Päivitä suodattimet ja tehtävät
+      this.applyFilters();
+    });
+    
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
-      // Komponentin päivitys kielen vaihtuessa
+      // Päivitä näkymä kun kieli vaihtuu
     });
   }
   
@@ -581,17 +599,10 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   }
 
   handleFiltersChanged(filters: FilterOptions) {
-    // Filtterit saatu task-filters-komponentilta
-    this.selectedPriority = filters.priority && filters.priority.length > 0 
-      ? filters.priority[0] 
-      : null;
-      
-    // Käsitellään kentät yhtenäisesti null-arvoilla
-    this.selectedCategory = filters.category ?? null;
-    this.selectedProject = filters.project ?? null;
-    this.selectedAssigneeFilter = filters.assigneeFilter ?? null;
+    this.selectedPriority = filters.priority ? filters.priority[0] : null;
+    this.selectedCategory = filters.category !== undefined ? filters.category : null;
+    this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
     
-    // Suodata tehtävät päivitetyillä suodattimilla
     this.applyFilters();
   }
 } 
