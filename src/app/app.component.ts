@@ -54,8 +54,8 @@ import { ToastComponent } from './components/shared/toast/toast.component';
         </div>
         
         <!-- Sidebar -->
-        <nav [class]="'bg-white dark:bg-gray-800 shadow-lg h-screen overflow-y-auto z-20 flex flex-col transition-all duration-300 ' + 
-                     (isMobile ? (sidebarOpen ? 'fixed top-0 left-0 w-64' : 'fixed top-0 -left-64 w-64') : 'w-64 fixed top-0 left-0')">
+        <nav [class]="'bg-white dark:bg-gray-800 shadow-lg h-screen overflow-y-auto z-30 flex flex-col transition-all duration-300 ' + 
+                     (isMobile ? (sidebarOpen ? 'fixed top-0 left-0 w-80' : 'fixed top-0 -left-80 w-80') : 'w-64 fixed top-0 left-0')">
           <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between shrink-0">
             <h1 class="text-xl font-bold text-gray-900 dark:text-white">Task Manager</h1>
             <div class="flex items-center space-x-2">
@@ -207,7 +207,7 @@ import { ToastComponent } from './components/shared/toast/toast.component';
           <!-- Overlay for mobile sidebar -->
           <div *ngIf="sidebarOpen" 
               (click)="toggleSidebar()"
-              class="md:hidden fixed inset-0 bg-black bg-opacity-50 z-10"></div>
+              class="md:hidden fixed inset-0 bg-black bg-opacity-50 z-20 backdrop-filter backdrop-blur-sm"></div>
           
           <!-- Main content area -->
           <router-outlet></router-outlet>

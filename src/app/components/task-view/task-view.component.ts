@@ -65,13 +65,14 @@ import { ToastService } from '../../services/toast.service';
       </div>
 
       <!-- Tehtävätaulukko -->
-      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden table-wrapper">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-responsive">
           <thead class="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th *ngFor="let header of tableHeaders"
                   class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                   [class.text-right]="header.value === 'actions'"
+                  [class.hide-sm]="header.value === 'progress' || header.value === 'createdAt' || header.value === 'assignee'"
                   (click)="setSorting(header.value)">
                 <div class="flex items-center" [class.justify-end]="header.value === 'actions'">
                   <span>{{header.label}}</span>
@@ -153,7 +154,7 @@ import { ToastService } from '../../services/toast.service';
                   </span>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
                 <div class="flex items-center space-x-2">
                   <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
@@ -161,7 +162,7 @@ import { ToastService } from '../../services/toast.service';
                   <span>{{getUserName(task.assignee) || translate('notAssigned')}}</span>
                 </div>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
                 {{task.progress}}%
               </td>
               
@@ -187,10 +188,10 @@ import { ToastService } from '../../services/toast.service';
                 <span *ngIf="!task.deadline" class="text-sm text-gray-500 dark:text-gray-400">-</span>
               </td>
               
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
                 {{task.createdAt | date:'d.M.yyyy HH:mm'}}
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right">
+              <td class="px-6 py-4 whitespace-nowrap text-right sticky-column">
                 <div class="flex items-center justify-end space-x-2">
                   <div class="flex space-x-1">
                     <button (click)="setTaskState(task, TaskState.TO_DO); $event.stopPropagation()"
@@ -236,8 +237,16 @@ import { ToastService } from '../../services/toast.service';
         </table>
       </div>
 
+      <!-- Mobiili-ilmoitus vierityksestä, näkyy vain pienillä näytöillä -->
+      <div class="md:hidden text-xs text-gray-500 dark:text-gray-400 text-center mt-2 animate-pulse">
+        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+        {{ translate('swipeToSeeMore') || 'Pyyhkäise sivulle nähdäksesi lisää' }}
+      </div>
+      
       <!-- Sivutuksen kontrollit -->
-      <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg">
+      <div class="flex items-center justify-between bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg pagination-controls">
         <div class="flex items-center space-x-2">
           <button (click)="previousPage()"
                   [disabled]="currentPage === 1"
@@ -386,7 +395,22 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     private projectContextService: ProjectContextService,
     private route: ActivatedRoute,
     private toastService: ToastService
-  ) {}
+  ) {
+    // Määritä taulukon sarakkeet
+    this.tableHeaders = [
+      { label: 'Title', value: 'title' },
+      { label: 'Priority', value: 'priority' },
+      { label: 'Status', value: 'state' },
+      { label: 'Category', value: 'category' },
+      { label: 'Project', value: 'project' },
+      { label: 'Assignee', value: 'assignee' },
+      { label: 'Progress', value: 'progress' },
+      { label: 'Scheduled', value: 'scheduledDate' },
+      { label: 'Deadline', value: 'deadline' },
+      { label: 'Created', value: 'createdAt' },
+      { label: 'Actions', value: 'actions' }
+    ];
+  }
   
   ngOnInit() {
     this.loadTasks();
@@ -412,11 +436,30 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     this.languageSubscription = this.languageService.currentLanguage$.subscribe(() => {
       // Päivitä näkymä kun kieli vaihtuu
     });
+    
+    // Kuuntele ikkunan koon muutoksia
+    window.addEventListener('resize', this.optimizeTableForScreen.bind(this));
+    this.optimizeTableForScreen();
   }
   
   ngOnDestroy() {
     if (this.languageSubscription) {
       this.languageSubscription.unsubscribe();
+    }
+    
+    // Poista ikkunan koon kuuntelija
+    window.removeEventListener('resize', this.optimizeTableForScreen.bind(this));
+  }
+  
+  /**
+   * Optimoi taulukon näkymä näytön koon mukaan
+   */
+  optimizeTableForScreen() {
+    const isMobile = window.innerWidth < 768;
+    
+    // Toteuta tarvittavat muutokset taulukon optimoimiseksi mobiililaitteille
+    if (isMobile) {
+      // Voit lisätä tähän logiikkaa mobiilioptimointia varten
     }
   }
   

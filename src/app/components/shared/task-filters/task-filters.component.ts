@@ -25,7 +25,7 @@ export interface FilterOptions {
     <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-md hover:shadow-lg transition-all duration-300">
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ translate('filterSettings') }}</h3>
       
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="flex justify-between items-start gap-4 filter-controls">
         <!-- My Tasks Filter -->
         <div class="space-y-2">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('myTasks') }}</label>
