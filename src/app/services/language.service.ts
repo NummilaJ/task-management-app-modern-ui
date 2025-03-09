@@ -249,6 +249,10 @@ export class LanguageService {
       en: 'of', 
       fi: 'yhteensä' 
     },
+    itemsPerPage: {
+      en: 'Items per page',
+      fi: 'Tehtäviä per sivu'
+    },
     login: { 
       en: 'Login', 
       fi: 'Kirjaudu sisään' 

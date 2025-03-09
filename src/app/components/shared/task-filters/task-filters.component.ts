@@ -26,6 +26,31 @@ export interface FilterOptions {
       <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">{{ translate('filterSettings') }}</h3>
       
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Project Filter -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
+          <select [(ngModel)]="selectedProject" 
+                  (change)="applyFilters()"
+                  class="filter-select">
+            <option [ngValue]="null">{{ translate('allProjects') }}</option>
+            <option *ngFor="let project of projects" [ngValue]="project.id">
+              {{ project.name }}
+            </option>
+          </select>
+        </div>
+        
+        <!-- My Tasks Filter -->
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('myTasks') }}</label>
+          <select [(ngModel)]="selectedAssigneeFilter"
+                  (change)="applyFilters()"
+                  class="filter-select">
+            <option [ngValue]="null">{{ translate('allTasks') }}</option>
+            <option value="assigned">{{ translate('assignedToMe') }}</option>
+            <option value="created">{{ translate('createdByMe') }}</option>
+          </select>
+        </div>
+        
         <!-- State Filter - Visible only when showStateFilter is true -->
         <div *ngIf="showStateFilter" class="space-y-2">
           <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('state') }}</label>
@@ -74,31 +99,6 @@ export interface FilterOptions {
             <option *ngFor="let cat of categories" [ngValue]="cat.id">
               {{ cat.name }}
             </option>
-          </select>
-        </div>
-        
-        <!-- Project Filter -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('project') }}</label>
-          <select [(ngModel)]="selectedProject" 
-                  (change)="applyFilters()"
-                  class="filter-select">
-            <option [ngValue]="null">{{ translate('allProjects') }}</option>
-            <option *ngFor="let project of projects" [ngValue]="project.id">
-              {{ project.name }}
-            </option>
-          </select>
-        </div>
-
-        <!-- My Tasks Filter -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ translate('myTasks') }}</label>
-          <select [(ngModel)]="selectedAssigneeFilter"
-                  (change)="applyFilters()"
-                  class="filter-select">
-            <option [ngValue]="null">{{ translate('allTasks') }}</option>
-            <option value="assigned">{{ translate('assignedToMe') }}</option>
-            <option value="created">{{ translate('createdByMe') }}</option>
           </select>
         </div>
 

@@ -95,7 +95,11 @@ import { v4 as uuidv4 } from 'uuid';
       <div class="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
         <div class="flex justify-between items-center mb-4">
           <h2 class="text-xl font-bold text-gray-900 dark:text-white">{{ translate('activeProjects') }}</h2>
-          <a routerLink="/projects" class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+          <a routerLink="/projects" 
+             class="btn-primary flex items-center gap-2 transform hover:scale-105 text-sm px-3 py-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
             {{ translate('viewAllProjects') }}
           </a>
         </div>

@@ -254,8 +254,22 @@ import { LanguageService } from '../../services/language.service';
             {{ translate('next') }}
           </button>
         </div>
-        <div class="text-sm text-gray-500 dark:text-gray-400">
-          {{ translate('showing') }} {{startIndex + 1}}-{{min(endIndex, filteredTasks.length)}} {{ translate('of') }} {{filteredTasks.length}} {{ translate('tasks') }}
+        <div class="flex items-center space-x-3">
+          <div class="flex items-center space-x-2">
+            <label for="items-per-page" class="text-sm text-gray-600 dark:text-gray-300">
+              {{ translate('itemsPerPage') }}:
+            </label>
+            <select 
+              id="items-per-page" 
+              class="form-select text-sm rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+              [(ngModel)]="itemsPerPage"
+              (change)="changeItemsPerPage()">
+              <option *ngFor="let option of itemsPerPageOptions" [value]="option">{{ option }}</option>
+            </select>
+          </div>
+          <div class="text-sm text-gray-500 dark:text-gray-400">
+            {{ translate('showing') }} {{startIndex + 1}}-{{min(endIndex, filteredTasks.length)}} {{ translate('of') }} {{filteredTasks.length}} {{ translate('tasks') }}
+          </div>
         </div>
       </div>
     </div>
@@ -338,6 +352,7 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   totalPages = 1;
   startIndex = 0;
   endIndex = 0;
+  itemsPerPageOptions = [10, 20, 50];
 
   taskStates = Object.values(TaskState);
   taskPriorities = Object.values(TaskPriority);
@@ -636,5 +651,10 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   getProjectName(projectId: string | null): string {
     const project = this.getProjectById(projectId);
     return project ? project.name : 'Ei projektia';
+  }
+
+  changeItemsPerPage() {
+    this.currentPage = 1; // Palautetaan ensimmäiselle sivulle kun vaihdetaan määrää
+    this.updatePagination();
   }
 } 
