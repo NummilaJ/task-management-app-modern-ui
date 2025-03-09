@@ -59,7 +59,7 @@ import { ProjectContextService } from '../../services/project-context.service';
           [categories]="categories"
           [projects]="projects"
           [taskPriorities]="taskPriorities"
-          [selectedPriority]="selectedPriority ? [selectedPriority] : []"
+          [selectedPriority]="selectedPriority"
           [selectedCategory]="selectedCategory"
           [selectedProject]="selectedProject"
           [selectedAssigneeFilter]="selectedAssigneeFilter"
@@ -415,7 +415,7 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   selectedTask: Task | null = null;
   isModalOpen = false;
   
-  selectedPriority: TaskPriority | null = null;
+  selectedPriority: TaskPriority[] = [];
   selectedCategory: string | null = null;
   selectedProject: string | null = null;
   selectedAssigneeFilter: string | null = null;
@@ -508,8 +508,8 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
     let filtered = JSON.parse(JSON.stringify(this.tasks));
 
     // Prioriteetti-suodatus
-    if (this.selectedPriority) {
-      filtered = filtered.filter((task: Task) => task.priority === this.selectedPriority);
+    if (this.selectedPriority && this.selectedPriority.length > 0) {
+      filtered = filtered.filter((task: Task) => this.selectedPriority.includes(task.priority));
     }
 
     // Kategoria-suodatus
@@ -599,7 +599,7 @@ export class KanbanViewComponent implements OnInit, OnDestroy {
   }
 
   handleFiltersChanged(filters: FilterOptions) {
-    this.selectedPriority = filters.priority ? filters.priority[0] : null;
+    this.selectedPriority = filters.priority || [];
     this.selectedCategory = filters.category !== undefined ? filters.category : null;
     this.selectedAssigneeFilter = filters.assigneeFilter !== undefined ? filters.assigneeFilter : null;
     

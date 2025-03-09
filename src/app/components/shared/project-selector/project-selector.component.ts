@@ -19,9 +19,9 @@ import { Subscription } from 'rxjs';
         <select 
           [(ngModel)]="selectedProjectId" 
           (change)="onProjectChange()"
-          class="p-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8">
+          class="p-2 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-8 w-full max-w-[180px] overflow-hidden text-ellipsis">
           <option [ngValue]="null">{{ translate('allProjects') }}</option>
-          <option *ngFor="let project of projects" [ngValue]="project.id">
+          <option *ngFor="let project of projects" [ngValue]="project.id" [title]="project.name">
             {{ project.name }}
           </option>
         </select>
@@ -31,6 +31,12 @@ import { Subscription } from 'rxjs';
   styles: [`
     .project-selector {
       @apply relative;
+    }
+    
+    select option {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
   `]
 })
