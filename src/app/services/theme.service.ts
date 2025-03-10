@@ -11,16 +11,9 @@ export class ThemeService {
   public theme$ = this.themeSubject.asObservable();
 
   constructor() {
-    // Tarkista järjestelmän teema
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const savedTheme = localStorage.getItem('theme') as Theme;
+    // Tarkista järjestelmän teema ja tallennettu teema
+    this.initializeTheme();
     
-    if (savedTheme) {
-      this.setTheme(savedTheme);
-    } else {
-      this.setTheme(prefersDark ? 'dark' : 'light');
-    }
-
     // Kuuntele järjestelmän teeman muutoksia
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
       if (!localStorage.getItem('theme')) {
@@ -29,11 +22,32 @@ export class ThemeService {
     });
   }
 
+  private initializeTheme() {
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const savedTheme = localStorage.getItem('theme') as Theme | null;
+    
+    if (savedTheme) {
+      // Käytetään tallennettua teemaa jos sellainen on
+      this.setTheme(savedTheme);
+    } else {
+      // Käytetään järjestelmän teemaa, jos ei ole tallennettua
+      this.setTheme(prefersDark ? 'dark' : 'light');
+    }
+  }
+
   setTheme(theme: Theme) {
+    // Tallennetaan teema localStorageen
     localStorage.setItem('theme', theme);
+    
+    // Poistetaan kumpikin teemaluokka ja lisätään uusi luokka
     document.documentElement.classList.remove('light', 'dark');
     document.documentElement.classList.add(theme);
+    
+    // Päivitetään teema kaikille tilaajille
     this.themeSubject.next(theme);
+    
+    // Debug-viesti konsoli (voidaan poistaa tuotannossa)
+    console.log('Theme set to:', theme);
   }
 
   toggleTheme() {

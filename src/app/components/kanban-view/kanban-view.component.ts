@@ -70,7 +70,7 @@ import { ProjectContextService } from '../../services/project-context.service';
       </div>
       
       <!-- Kanban Board -->
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto max-w-full">
         <!-- To Do Column -->
         <div class="kanban-column bg-white dark:bg-gray-800 rounded-xl shadow-lg">
           <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-t-xl border-b border-yellow-100 dark:border-yellow-900/30">
@@ -88,7 +88,7 @@ import { ProjectContextService } from '../../services/project-context.service';
             </div>
           </div>
           
-          <div class="p-4 min-h-[50vh] max-h-[70vh] overflow-y-auto" 
+          <div class="p-4 min-h-[200px] md:min-h-[50vh] max-h-[400px] md:max-h-[70vh] overflow-y-auto" 
                cdkDropList
                #todoList="cdkDropList"
                [cdkDropListData]="todoTasks"

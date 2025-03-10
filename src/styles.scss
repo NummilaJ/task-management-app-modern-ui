@@ -252,6 +252,10 @@ h6 {
   border: none !important;
 }
 
+.dark .btn, .dark button.btn, .dark [class*="btn-"] {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
 .btn::before, button.btn::before, [class*="btn-"]::before {
   content: '' !important;
   position: absolute !important;
@@ -261,6 +265,10 @@ h6 {
   transition: opacity 300ms ease !important;
 }
 
+.dark .btn::before, .dark button.btn::before, .dark [class*="btn-"]::before {
+  background: radial-gradient(circle at center, rgba(255, 255, 255, 0.1) 0%, transparent 70%) !important;
+}
+
 .btn:hover::before, button.btn:hover::before, [class*="btn-"]:hover::before {
   opacity: 1 !important;
 }
@@ -268,6 +276,11 @@ h6 {
 .btn:focus, button.btn:focus, [class*="btn-"]:focus {
   outline: none !important;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4) !important;
+}
+
+.dark .btn:focus, .dark button.btn:focus, .dark [class*="btn-"]:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6) !important;
 }
 
 .btn:disabled, button.btn:disabled, [class*="btn-"]:disabled {
@@ -282,9 +295,17 @@ h6 {
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1) !important;
 }
 
+.dark .btn:hover, .dark button.btn:hover, .dark [class*="btn-"]:hover {
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.3) !important;
+}
+
 .btn:active, button.btn:active, [class*="btn-"]:active {
   transform: translateY(0) !important;
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .btn:active, .dark button.btn:active, .dark [class*="btn-"]:active {
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2) !important;
 }
 
 /* Primary Button */
@@ -308,6 +329,15 @@ h6 {
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
 }
 
+.dark .btn-primary:hover, .dark button.btn-primary:hover {
+  background: linear-gradient(135deg, #4f46e5, #4338ca) !important;
+  box-shadow: 0 8px 15px rgba(79, 70, 229, 0.5) !important;
+}
+
+.dark .btn-primary:focus, .dark button.btn-primary:focus {
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.6) !important;
+}
+
 /* Danger Button */
 .btn-danger, button.btn-danger {
   background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
@@ -322,6 +352,20 @@ h6 {
 
 .btn-danger:focus, button.btn-danger:focus {
   box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.4) !important;
+}
+
+.dark .btn-danger, .dark button.btn-danger {
+  background: linear-gradient(135deg, #f43f5e, #e11d48) !important;
+  box-shadow: 0 4px 12px rgba(225, 29, 72, 0.3) !important;
+}
+
+.dark .btn-danger:hover, .dark button.btn-danger:hover {
+  background: linear-gradient(135deg, #e11d48, #be123c) !important;
+  box-shadow: 0 8px 15px rgba(225, 29, 72, 0.5) !important;
+}
+
+.dark .btn-danger:focus, .dark button.btn-danger:focus {
+  box-shadow: 0 0 0 3px rgba(244, 63, 94, 0.6) !important;
 }
 
 /* Secondary Button */
@@ -353,52 +397,98 @@ h6 {
   color: #f9fafb !important;
 }
 
+.dark .btn-secondary:focus, .dark button.btn-secondary:focus {
+  box-shadow: 0 0 0 3px rgba(156, 163, 175, 0.6) !important;
+}
+
 /* Success Button */
 .btn-success {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background-image: linear-gradient(to right, #10b981, #22c55e);
   color: white;
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
+.btn-success:focus {
+  --tw-ring-color: #22c55e;
+}
+
 .btn-success:hover {
-  background: linear-gradient(135deg, #059669, #047857);
+  background-image: linear-gradient(to right, #059669, #16a34a);
   box-shadow: 0 8px 15px rgba(16, 185, 129, 0.4);
 }
 
-.btn-success:focus {
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.4);
+.dark .btn-success {
+  background-image: linear-gradient(to right, #059669, #16a34a);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.dark .btn-success:hover {
+  background-image: linear-gradient(to right, #047857, #15803d);
+  box-shadow: 0 8px 15px rgba(16, 185, 129, 0.5);
+}
+
+.dark .btn-success:focus {
+  --tw-ring-color: #059669;
 }
 
 /* Info Button */
 .btn-info {
-  background: linear-gradient(135deg, #0ea5e9, #0284c7);
+  background-image: linear-gradient(to right, #0ea5e9, #06b6d4);
   color: white;
   box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
 }
 
+.btn-info:focus {
+  --tw-ring-color: #0ea5e9;
+}
+
 .btn-info:hover {
-  background: linear-gradient(135deg, #0284c7, #0369a1);
+  background-image: linear-gradient(to right, #0284c7, #0891b2);
   box-shadow: 0 8px 15px rgba(14, 165, 233, 0.4);
 }
 
-.btn-info:focus {
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.4);
+.dark .btn-info {
+  background-image: linear-gradient(to right, #0284c7, #0891b2);
+  box-shadow: 0 4px 12px rgba(14, 165, 233, 0.3);
+}
+
+.dark .btn-info:hover {
+  background-image: linear-gradient(to right, #0369a1, #0e7490);
+  box-shadow: 0 8px 15px rgba(14, 165, 233, 0.5);
+}
+
+.dark .btn-info:focus {
+  --tw-ring-color: #0284c7;
 }
 
 /* Warning Button */
 .btn-warning {
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background-image: linear-gradient(to right, #f59e0b, #eab308);
   color: white;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
+.btn-warning:focus {
+  --tw-ring-color: #f59e0b;
+}
+
 .btn-warning:hover {
-  background: linear-gradient(135deg, #d97706, #b45309);
+  background-image: linear-gradient(to right, #d97706, #ca8a04);
   box-shadow: 0 8px 15px rgba(245, 158, 11, 0.4);
 }
 
-.btn-warning:focus {
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4);
+.dark .btn-warning {
+  background-image: linear-gradient(to right, #d97706, #ca8a04);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
+.dark .btn-warning:hover {
+  background-image: linear-gradient(to right, #b45309, #a16207);
+  box-shadow: 0 8px 15px rgba(245, 158, 11, 0.5);
+}
+
+.dark .btn-warning:focus {
+  --tw-ring-color: #d97706;
 }
 
 /* Kokoluokat painikkeille */
@@ -412,6 +502,42 @@ h6 {
   padding: 0.8rem 2rem;
   font-size: 1.125rem;
   border-radius: 1rem;
+}
+
+/* Ghost Button tumman teeman tuki */
+.btn-ghost, button.btn-ghost {
+  background: transparent !important;
+  color: #4b5563 !important;
+  box-shadow: none !important;
+}
+
+.btn-ghost:hover, button.btn-ghost:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  box-shadow: none !important;
+}
+
+.dark .btn-ghost, .dark button.btn-ghost {
+  color: #e5e7eb !important;
+}
+
+.dark .btn-ghost:hover, .dark button.btn-ghost:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Icon Button tumman teeman tuki */
+.btn-icon, button.btn-icon {
+  padding: 0.5rem !important;
+  border-radius: 0.5rem !important;
+  min-width: 2.5rem !important;
+  min-height: 2.5rem !important;
+}
+
+.dark .btn-icon, .dark button.btn-icon {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.dark .btn-icon:hover, .dark button.btn-icon:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Taulukoiden responsiivisuus ylikirjoitukset */
@@ -485,6 +611,146 @@ h6 {
   }
 }
 
+/* Lomake-elementtien tumma teema */
+.dark input[type="text"],
+.dark input[type="password"],
+.dark input[type="email"],
+.dark input[type="number"],
+.dark input[type="search"],
+.dark input[type="tel"],
+.dark input[type="url"],
+.dark input[type="date"],
+.dark input[type="datetime-local"],
+.dark input[type="month"],
+.dark input[type="week"],
+.dark input[type="time"],
+.dark textarea,
+.dark select {
+  background-color: #374151 !important;
+  color: #f3f4f6 !important;
+  border-color: #4b5563 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: #6366f1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Kanban-näkymän tehtäväkorttien tumma teema */
+.dark .kanban-task {
+  background: linear-gradient(to bottom right, #2d3748, #1f2937) !important;
+  color: #f3f4f6 !important;
+  border: 1px solid #374151 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark .kanban-task h4 {
+  color: #f3f4f6 !important;
+}
+
+.dark .kanban-task p {
+  color: #d1d5db !important;
+}
+
+.dark .kanban-task .text-gray-500,
+.dark .kanban-task .text-gray-600,
+.dark .kanban-task .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+.dark .kanban-task .text-gray-900 {
+  color: #f3f4f6 !important;
+}
+
+/* Badge-tyylit tummassa teemassa */
+.dark .badge {
+  background-color: #374151 !important;
+  color: #e5e7eb !important;
+  border-color: #4b5563 !important;
+}
+
+.dark .badge-high {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.dark .badge-medium {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.3) !important;
+}
+
+.dark .badge-low {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  color: #86efac !important;
+  border-color: rgba(34, 197, 94, 0.3) !important;
+}
+
+.dark .status-badge-done {
+  background-color: rgba(34, 197, 94, 0.2) !important;
+  color: #86efac !important;
+}
+
+.dark .status-badge-in-progress {
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  color: #93c5fd !important;
+}
+
+.dark .status-badge-todo {
+  background-color: rgba(245, 158, 11, 0.2) !important;
+  color: #fcd34d !important;
+}
+
+/* Paperikortti tumma teema */
+.dark .card,
+.dark .paper,
+.dark .rounded-card,
+.dark .panel {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Dropdown tumma teema */
+.dark .dropdown-menu,
+.dark .dropdown-content,
+.dark .select-dropdown {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.dark .dropdown-item:hover,
+.dark .dropdown-menu-item:hover {
+  background-color: #374151 !important;
+}
+
+/* Modaalit tumma teema */
+.dark .modal,
+.dark .dialog,
+.dark .modal-content {
+  background-color: #1f2937 !important;
+  border-color: #374151 !important;
+}
+
+.dark .modal-header,
+.dark .dialog-header {
+  border-bottom-color: #374151 !important;
+}
+
+.dark .modal-footer,
+.dark .dialog-footer {
+  border-top-color: #374151 !important;
+}
+
 /* Jatka saman mallin mukaisesti muille elementeille tarpeen mukaan */
 
 /* Taulukoiden yleiset responsiivisuuskorjaukset */
@@ -501,4 +767,93 @@ h6 {
   box-shadow: -5px 0 10px rgba(0,0,0,0.15);
 }
 
-/* Taulukoiden responsiivisuus ylikirjoitukset */
+/* Paranneltu responsiivisuus */
+
+/* Taulukoiden responsiivisuus */
+.table-wrapper {
+  width: 100%;
+  border-radius: 0.75rem;
+  overflow: hidden;
+}
+
+.table-wrapper .overflow-x-auto {
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch; /* parempi vieritys iOS:lla */
+}
+
+/* Varmista että kaikki sisältö mahtuu näytölle */
+.max-w-full-screen {
+  max-width: 100vw !important;
+  overflow-x: hidden;
+}
+
+/* Paranneltu taulukko-layout */
+.table-responsive {
+  table-layout: auto;
+  min-width: 100%;
+}
+
+/* Mobiilinäkymän taulukko-optimoinnit */
+@media (max-width: 640px) {
+  /* Käytetään fixed layout mobiilissa tilan säästämiseksi */
+  .table-responsive {
+    table-layout: fixed;
+  }
+  
+  /* Varmistetaan että otsikko-sarake saa tarpeeksi tilaa */
+  .table-responsive td:first-child {
+    width: 50%;
+  }
+  
+  /* Pienennä padding mobiilissa */
+  .table-responsive th,
+  .table-responsive td {
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
+  }
+  
+  /* Tehtäväkorttien optimointi pienille näytöille */
+  .table-responsive .flex-shrink-0 {
+    width: 8px !important;
+    height: 8px !important;
+    min-width: 8px !important;
+  }
+  
+  /* Pienennä badge-elementtien kokoa */
+  .table-responsive .badge {
+    padding: 0.2rem 0.5rem !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+/* Tablet-näkymä */
+@media (min-width: 641px) and (max-width: 768px) {
+  .table-responsive th,
+  .table-responsive td {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+}
+
+/* Varmistetaan että toimintopainikkeet ovat aina näkyvissä */
+td:last-child.sticky-column {
+  background-color: white;
+  position: sticky;
+  right: 0;
+  z-index: 2;
+}
+
+.dark td:last-child.sticky-column {
+  background-color: #1f2937;
+}
+
+/* Kanban-näkymän responsiivisuuden parantaminen */
+.kanban-column {
+  min-width: 280px; /* Varmistetaan että kolumnit eivät ole liian kapeita */
+}
+
+@media (max-width: 768px) {
+  .kanban-column {
+    min-width: 100%; /* Mobiilinäkymässä täysi leveys */
+  }
+}

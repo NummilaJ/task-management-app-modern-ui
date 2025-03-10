@@ -66,175 +66,147 @@ import { ToastService } from '../../services/toast.service';
 
       <!-- Tehtävätaulukko -->
       <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden table-wrapper">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-responsive">
-          <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th *ngFor="let header of tableHeaders"
-                  class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
-                  [class.text-right]="header.value === 'actions'"
-                  [class.hide-sm]="header.value === 'progress' || header.value === 'createdAt' || header.value === 'assignee'"
-                  (click)="setSorting(header.value)">
-                <div class="flex items-center" [class.justify-end]="header.value === 'actions'">
-                  <span>{{header.label}}</span>
-                  <svg *ngIf="sortBy === header.value" 
-                       class="w-4 h-4" 
-                       [class.transform]="!sortDirection" 
-                       [class.rotate-180]="!sortDirection"
-                       fill="none" 
-                       stroke="currentColor" 
-                       viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr *ngFor="let task of paginatedTasks"
-                class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors duration-200"
-                (click)="openTaskModal(task)">
-              <td class="px-6 py-4">
-                <div class="flex items-center">
-                  <div class="flex-shrink-0 h-10 w-10">
-                    <div class="h-full w-full rounded-full bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center">
-                      <span class="text-sm font-medium text-blue-600 dark:text-blue-200">{{task.progress}}%</span>
-                    </div>
-                  </div>
-                  <div class="ml-4">
-                    <div class="text-sm font-medium text-gray-900 dark:text-white">
-                      {{task.title}}
-                    </div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                      {{task.description | slice:0:50}}{{task.description.length > 50 ? '...' : ''}}
-                    </div>
-                  </div>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="badge" [ngClass]="{
-                  'badge-high': task.priority === 'HIGH',
-                  'badge-medium': task.priority === 'MEDIUM',
-                  'badge-low': task.priority === 'LOW'
-                }">{{task.priority}}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="badge" [ngClass]="{
-                  'status-badge-done': task.state === TaskState.DONE,
-                  'status-badge-in-progress': task.state === TaskState.IN_PROGRESS,
-                  'status-badge-todo': task.state === TaskState.TO_DO
-                }">{{task.state}}</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center space-x-2">
-                  <ng-container *ngIf="task.category">
-                    <div *ngIf="getCategoryById(task.category) as category"
-                         [style.backgroundColor]="category.color"
-                         class="w-3 h-3 rounded-full"></div>
-                    <span class="text-sm text-gray-900 dark:text-white">
-                      {{getCategoryById(task.category)?.name}}
-                    </span>
-                  </ng-container>
-                  <span *ngIf="!task.category" class="text-sm text-gray-500">
-                    {{ translate('noCategory') }}
-                  </span>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div class="flex items-center space-x-2">
-                  <ng-container *ngIf="task.projectId">
-                    <div *ngIf="getProjectById(task.projectId) as project"
-                         [style.backgroundColor]="project.color"
-                         class="w-3 h-3 rounded-full"></div>
-                    <span class="text-sm text-gray-900 dark:text-white">
-                      {{getProjectById(task.projectId)?.name}}
-                    </span>
-                  </ng-container>
-                  <span *ngIf="!task.projectId" class="text-sm text-gray-500">
-                    {{ translate('noProject') }}
-                  </span>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
-                <div class="flex items-center space-x-2">
-                  <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                  </svg>
-                  <span>{{getUserName(task.assignee) || translate('notAssigned')}}</span>
-                </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
-                {{task.progress}}%
-              </td>
-              
-              <!-- Scheduled Date sarake -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div *ngIf="task.scheduledDate" class="text-sm text-gray-700 dark:text-gray-300 flex items-center space-x-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>{{task.scheduledDate | date:'dd.MM.yyyy'}}</span>
-                </div>
-                <span *ngIf="!task.scheduledDate" class="text-sm text-gray-500 dark:text-gray-400">-</span>
-              </td>
-              
-              <!-- Deadline sarake -->
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div *ngIf="task.deadline" class="text-sm text-red-500 dark:text-red-400 flex items-center space-x-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>{{task.deadline | date:'dd.MM.yyyy'}}</span>
-                </div>
-                <span *ngIf="!task.deadline" class="text-sm text-gray-500 dark:text-gray-400">-</span>
-              </td>
-              
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 hide-sm">
-                {{task.createdAt | date:'d.M.yyyy HH:mm'}}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right sticky-column">
-                <div class="flex items-center justify-end space-x-2">
-                  <div class="flex space-x-1">
-                    <button (click)="setTaskState(task, TaskState.TO_DO); $event.stopPropagation()"
-                            title="{{ translate('setAsToDo') }}"
-                            [ngClass]="{'text-yellow-600 dark:text-yellow-400': task.state === TaskState.TO_DO, 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300': task.state !== TaskState.TO_DO}"
-                            class="btn-icon btn-ghost p-1">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-                      </svg>
-                    </button>
-                    <button (click)="setTaskState(task, TaskState.IN_PROGRESS); $event.stopPropagation()"
-                            title="{{ translate('setAsInProgress') }}"
-                            [ngClass]="{'text-blue-600 dark:text-blue-400': task.state === TaskState.IN_PROGRESS, 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300': task.state !== TaskState.IN_PROGRESS}"
-                            class="btn-icon btn-ghost p-1">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </button>
-                    <button (click)="setTaskState(task, TaskState.DONE); $event.stopPropagation()"
-                            title="{{ translate('setAsDone') }}"
-                            [ngClass]="{'text-green-600 dark:text-green-400': task.state === TaskState.DONE, 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300': task.state !== TaskState.DONE}"
-                            class="btn-icon btn-ghost p-1">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                      </svg>
-                    </button>
-                  </div>
-                  <button (click)="deleteTask(task); $event.stopPropagation()"
-                          title="{{ translate('deleteTask') }}"
-                          class="btn-icon btn-ghost p-1 text-red-500 hover:text-red-700">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        <div class="overflow-x-auto">
+          <table class="w-full divide-y divide-gray-200 dark:divide-gray-700 table-responsive">
+            <thead class="bg-gray-50 dark:bg-gray-700">
+              <tr>
+                <th *ngFor="let header of visibleHeaders"
+                    class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
+                    [class.text-right]="header.value === 'actions'"
+                    (click)="setSorting(header.value)">
+                  <div class="flex items-center" [class.justify-end]="header.value === 'actions'">
+                    <span>{{header.label}}</span>
+                    <svg *ngIf="sortBy === header.value" 
+                         class="w-4 h-4" 
+                         [class.transform]="!sortDirection" 
+                         [class.rotate-180]="!sortDirection"
+                         fill="none" 
+                         stroke="currentColor" 
+                         viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+              <tr *ngFor="let task of paginatedTasks"
+                  class="hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer transition-colors duration-200"
+                  (click)="openTaskModal(task)">
+                <td *ngFor="let header of visibleHeaders" 
+                    class="px-6 py-4" 
+                    [class.whitespace-nowrap]="header.value !== 'title'">
+                  <!-- Otsikko sarake -->
+                  <div *ngIf="header.value === 'title'" class="flex items-center">
+                    <div class="flex-shrink-0 h-10 w-10">
+                      <div class="h-full w-full rounded-full bg-gradient-to-r from-blue-100 to-blue-200 dark:from-blue-900 dark:to-blue-800 flex items-center justify-center">
+                        <span class="text-sm font-medium text-blue-600 dark:text-blue-200">{{task.progress}}%</span>
+                      </div>
+                    </div>
+                    <div class="ml-4">
+                      <div class="text-sm font-medium text-gray-900 dark:text-white">
+                        {{task.title}}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400">
+                        {{task.description | slice:0:50}}{{task.description.length > 50 ? '...' : ''}}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Prioriteetti sarake -->
+                  <span *ngIf="header.value === 'priority'" class="badge" [ngClass]="{
+                    'badge-high': task.priority === 'HIGH',
+                    'badge-medium': task.priority === 'MEDIUM',
+                    'badge-low': task.priority === 'LOW'
+                  }">{{task.priority}}</span>
+                  
+                  <!-- Tila sarake -->
+                  <span *ngIf="header.value === 'state'" class="badge" [ngClass]="{
+                    'status-badge-done': task.state === TaskState.DONE,
+                    'status-badge-in-progress': task.state === TaskState.IN_PROGRESS,
+                    'status-badge-todo': task.state === TaskState.TO_DO
+                  }">{{task.state}}</span>
+                  
+                  <!-- Kategoria sarake -->
+                  <div *ngIf="header.value === 'category'" class="flex items-center space-x-2">
+                    <ng-container *ngIf="task.category">
+                      <div *ngIf="getCategoryById(task.category) as category"
+                           [style.backgroundColor]="category.color"
+                           class="w-3 h-3 rounded-full"></div>
+                      <span class="text-sm text-gray-900 dark:text-white">
+                        {{getCategoryById(task.category)?.name}}
+                      </span>
+                    </ng-container>
+                    <span *ngIf="!task.category" class="text-sm text-gray-500">
+                      {{ translate('noCategory') }}
+                    </span>
+                  </div>
+                  
+                  <!-- Projekti sarake -->
+                  <div *ngIf="header.value === 'project'" class="flex items-center space-x-2">
+                    <ng-container *ngIf="task.projectId">
+                      <div *ngIf="getProjectById(task.projectId) as project"
+                           [style.backgroundColor]="project.color"
+                           class="w-3 h-3 rounded-full"></div>
+                      <span class="text-sm text-gray-900 dark:text-white">
+                        {{getProjectById(task.projectId)?.name}}
+                      </span>
+                    </ng-container>
+                    <span *ngIf="!task.projectId" class="text-sm text-gray-500">
+                      {{ translate('noProject') }}
+                    </span>
+                  </div>
+                  
+                  <!-- Vastuuhenkilö sarake -->
+                  <div *ngIf="header.value === 'assignee'" class="flex items-center space-x-2">
+                    <span class="text-sm text-gray-900 dark:text-white">
+                      {{getUserName(task.assignee) || translate('notAssigned')}}
+                    </span>
+                  </div>
+                  
+                  <!-- Edistyminen sarake -->
+                  <div *ngIf="header.value === 'progress'" class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
+                    <div class="bg-blue-600 h-2.5 rounded-full" [style.width]="task.progress + '%'"></div>
+                  </div>
+                  
+                  <!-- Suunniteltu päivä sarake -->
+                  <span *ngIf="header.value === 'scheduledDate'" class="text-sm text-gray-900 dark:text-white">
+                    {{task.scheduledDate ? (task.scheduledDate | date:'dd.MM.yyyy') : '-'}}
+                  </span>
+                  
+                  <!-- Deadline sarake -->
+                  <span *ngIf="header.value === 'deadline'" 
+                       class="text-sm" 
+                       [class.text-red-600]="isOverdue(task)" 
+                       [class.dark:text-red-400]="isOverdue(task) && isDarkMode()" 
+                       [class.text-gray-900]="!isOverdue(task)" 
+                       [class.dark:text-white]="!isOverdue(task) && isDarkMode()">
+                    {{task.deadline ? (task.deadline | date:'dd.MM.yyyy') : '-'}}
+                  </span>
+                  
+                  <!-- Luotu sarake -->
+                  <span *ngIf="header.value === 'createdAt'" class="text-sm text-gray-900 dark:text-white">
+                    {{task.createdAt ? (task.createdAt | date:'dd.MM.yyyy') : '-'}}
+                  </span>
+                  
+                  <!-- Toiminnot sarake -->
+                  <div *ngIf="header.value === 'actions'" class="text-right">
+                    <button class="btn-icon btn-ghost mr-2 text-gray-500 dark:text-gray-400" (click)="$event.stopPropagation()">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                      </svg>
+                    </button>
+                    <button class="btn-icon btn-ghost text-red-500 dark:text-red-400" (click)="$event.stopPropagation(); deleteTask(task)">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <!-- Mobiili-ilmoitus vierityksestä, näkyy vain pienillä näytöillä -->
@@ -369,19 +341,21 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   taskStates = Object.values(TaskState);
   taskPriorities = Object.values(TaskPriority);
   tableHeaders = [
-    { label: 'Title', value: 'title' },
-    { label: 'Priority', value: 'priority' },
-    { label: 'Status', value: 'state' },
-    { label: 'Category', value: 'category' },
-    { label: 'Project', value: 'project' },
-    { label: 'Assignee', value: 'assignee' },
-    { label: 'Progress', value: 'progress' },
-    { label: 'Scheduled', value: 'scheduledDate' },
-    { label: 'Deadline', value: 'deadline' },
-    { label: 'Created', value: 'createdAt' },
-    { label: 'Actions', value: 'actions' }
+    { label: this.translate('title'), value: 'title' },
+    { label: this.translate('priority'), value: 'priority' },
+    { label: this.translate('status'), value: 'state' },
+    { label: this.translate('category'), value: 'category' },
+    { label: this.translate('project'), value: 'project' },
+    { label: this.translate('assignee'), value: 'assignee' },
+    { label: this.translate('progress'), value: 'progress' },
+    { label: this.translate('scheduled'), value: 'scheduledDate' },
+    { label: this.translate('deadline'), value: 'deadline' },
+    { label: this.translate('created'), value: 'createdAt' },
+    { label: this.translate('actions'), value: 'actions' }
   ];
 
+  visibleHeaders: Array<{label: string, value: string}> = [];
+  
   TaskState = TaskState;
   
   private languageSubscription: Subscription | null = null;
@@ -398,17 +372,17 @@ export class TaskViewComponent implements OnInit, OnDestroy {
   ) {
     // Määritä taulukon sarakkeet
     this.tableHeaders = [
-      { label: 'Title', value: 'title' },
-      { label: 'Priority', value: 'priority' },
-      { label: 'Status', value: 'state' },
-      { label: 'Category', value: 'category' },
-      { label: 'Project', value: 'project' },
-      { label: 'Assignee', value: 'assignee' },
-      { label: 'Progress', value: 'progress' },
-      { label: 'Scheduled', value: 'scheduledDate' },
-      { label: 'Deadline', value: 'deadline' },
-      { label: 'Created', value: 'createdAt' },
-      { label: 'Actions', value: 'actions' }
+      { label: this.translate('title'), value: 'title' },
+      { label: this.translate('priority'), value: 'priority' },
+      { label: this.translate('status'), value: 'state' },
+      { label: this.translate('category'), value: 'category' },
+      { label: this.translate('project'), value: 'project' },
+      { label: this.translate('assignee'), value: 'assignee' },
+      { label: this.translate('progress'), value: 'progress' },
+      { label: this.translate('scheduled'), value: 'scheduledDate' },
+      { label: this.translate('deadline'), value: 'deadline' },
+      { label: this.translate('created'), value: 'createdAt' },
+      { label: this.translate('actions'), value: 'actions' }
     ];
   }
   
@@ -455,14 +429,62 @@ export class TaskViewComponent implements OnInit, OnDestroy {
    * Optimoi taulukon näkymä näytön koon mukaan
    */
   optimizeTableForScreen() {
-    const isMobile = window.innerWidth < 768;
+    const screenWidth = window.innerWidth;
     
-    // Toteuta tarvittavat muutokset taulukon optimoimiseksi mobiililaitteille
-    if (isMobile) {
-      // Voit lisätä tähän logiikkaa mobiilioptimointia varten
+    // Näytetään tietty määrä sarakkeita näytön koon mukaan
+    if (screenWidth < 640) {
+      // Mobiili - vain tärkeimmät sarakkeet
+      this.visibleHeaders = this.tableHeaders.filter(h => 
+        ['title', 'priority', 'state', 'actions'].includes(h.value)
+      );
+    } else if (screenWidth < 768) {
+      // Tablet - vähemmän sarakkeita
+      this.visibleHeaders = this.tableHeaders.filter(h => 
+        ['title', 'priority', 'state', 'category', 'deadline', 'actions'].includes(h.value)
+      );
+    } else if (screenWidth < 1024) {
+      // Pieni desktop - enemmän sarakkeita
+      this.visibleHeaders = this.tableHeaders.filter(h => 
+        ['title', 'priority', 'state', 'category', 'project', 'deadline', 'actions'].includes(h.value)
+      );
+    } else if (screenWidth < 1280) {
+      // Keskikokoinen desktop - useimmat sarakkeet
+      this.visibleHeaders = this.tableHeaders.filter(h => 
+        ['title', 'priority', 'state', 'category', 'project', 'assignee', 'deadline', 'actions'].includes(h.value)
+      );
+    } else {
+      // Suuri desktop - kaikki sarakkeet
+      this.visibleHeaders = this.tableHeaders;
     }
+    
+    // Aseta sopiva itemsPerPage-arvo näytön koon mukaan
+    if (screenWidth < 768) {
+      this.itemsPerPage = 10;
+    } else if (screenWidth < 1280) {
+      this.itemsPerPage = 15;
+    } else {
+      this.itemsPerPage = 20;
+    }
+    
+    // Päivitä paginointi
+    this.updatePagination();
   }
   
+  /**
+   * Tarkistaa onko tehtävän deadline mennyt
+   */
+  isOverdue(task: Task): boolean {
+    if (!task.deadline) return false;
+    return new Date(task.deadline) < new Date();
+  }
+  
+  /**
+   * Tarkistaa onko tumma teema käytössä
+   */
+  isDarkMode(): boolean {
+    return document.documentElement.classList.contains('dark');
+  }
+
   translate(key: string): string {
     return this.languageService.translate(key);
   }
