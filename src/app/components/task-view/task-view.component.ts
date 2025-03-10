@@ -73,6 +73,7 @@ import { ToastService } from '../../services/toast.service';
                 <th *ngFor="let header of visibleHeaders"
                     class="px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors duration-200"
                     [class.text-right]="header.value === 'actions'"
+                    [class.sticky-column]="header.value === 'actions'"
                     (click)="setSorting(header.value)">
                   <div class="flex items-center" [class.justify-end]="header.value === 'actions'">
                     <span>{{header.label}}</span>
@@ -95,7 +96,8 @@ import { ToastService } from '../../services/toast.service';
                   (click)="openTaskModal(task)">
                 <td *ngFor="let header of visibleHeaders" 
                     class="px-6 py-4" 
-                    [class.whitespace-nowrap]="header.value !== 'title'">
+                    [class.whitespace-nowrap]="header.value !== 'title'"
+                    [class.sticky-column]="header.value === 'actions'">
                   <!-- Otsikko sarake -->
                   <div *ngIf="header.value === 'title'" class="flex items-center">
                     <div class="flex-shrink-0 h-10 w-10">
@@ -164,11 +166,6 @@ import { ToastService } from '../../services/toast.service';
                     </span>
                   </div>
                   
-                  <!-- Edistyminen sarake -->
-                  <div *ngIf="header.value === 'progress'" class="w-full bg-gray-200 rounded-full h-2.5 dark:bg-gray-700">
-                    <div class="bg-blue-600 h-2.5 rounded-full" [style.width]="task.progress + '%'"></div>
-                  </div>
-                  
                   <!-- Suunniteltu päivä sarake -->
                   <span *ngIf="header.value === 'scheduledDate'" class="text-sm text-gray-900 dark:text-white">
                     {{task.scheduledDate ? (task.scheduledDate | date:'dd.MM.yyyy') : '-'}}
@@ -191,16 +188,55 @@ import { ToastService } from '../../services/toast.service';
                   
                   <!-- Toiminnot sarake -->
                   <div *ngIf="header.value === 'actions'" class="text-right">
-                    <button class="btn-icon btn-ghost mr-2 text-gray-500 dark:text-gray-400" (click)="$event.stopPropagation()">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-                      </svg>
-                    </button>
-                    <button class="btn-icon btn-ghost text-red-500 dark:text-red-400" (click)="$event.stopPropagation(); deleteTask(task)">
-                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
-                      </svg>
-                    </button>
+                    <div class="flex justify-end space-x-1">
+                      <!-- TO_DO-painike -->
+                      <button class="btn-icon btn-ghost" 
+                              [class.bg-yellow-100]="task.state === TaskState.TO_DO"
+                              [class.dark:bg-yellow-900]="task.state === TaskState.TO_DO"
+                              [class.text-yellow-800]="task.state === TaskState.TO_DO"
+                              [class.dark:text-yellow-200]="task.state === TaskState.TO_DO"
+                              title="{{ translate('setToDo') }}"
+                              (click)="$event.stopPropagation(); setTaskState(task, TaskState.TO_DO)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                        </svg>
+                      </button>
+                      
+                      <!-- IN_PROGRESS-painike -->
+                      <button class="btn-icon btn-ghost" 
+                              [class.bg-blue-100]="task.state === TaskState.IN_PROGRESS"
+                              [class.dark:bg-blue-900]="task.state === TaskState.IN_PROGRESS"
+                              [class.text-blue-800]="task.state === TaskState.IN_PROGRESS"
+                              [class.dark:text-blue-200]="task.state === TaskState.IN_PROGRESS"
+                              title="{{ translate('setInProgress') }}"
+                              (click)="$event.stopPropagation(); setTaskState(task, TaskState.IN_PROGRESS)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </button>
+                      
+                      <!-- DONE-painike -->
+                      <button class="btn-icon btn-ghost" 
+                              [class.bg-green-100]="task.state === TaskState.DONE"
+                              [class.dark:bg-green-900]="task.state === TaskState.DONE"
+                              [class.text-green-800]="task.state === TaskState.DONE"
+                              [class.dark:text-green-200]="task.state === TaskState.DONE"
+                              title="{{ translate('setDone') }}"
+                              (click)="$event.stopPropagation(); setTaskState(task, TaskState.DONE)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                      </button>
+                      
+                      <!-- Poistopainike -->
+                      <button class="btn-icon btn-ghost text-red-500 dark:text-red-400" 
+                              title="{{ translate('deleteTask') }}"
+                              (click)="$event.stopPropagation(); deleteTask(task)">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -308,6 +344,26 @@ import { ToastService } from '../../services/toast.service';
     .status-badge-todo {
       @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
     }
+
+    /* Toimintosarakkeen kiinnitys näkyviin */
+    .sticky-column {
+      position: sticky;
+      right: 0;
+      background-color: white;
+      z-index: 2;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.05);
+      min-width: 120px; /* Varmistetaan että toimintosarakkeella on tarpeeksi leveyttä */
+    }
+
+    .dark .sticky-column {
+      background-color: #1f2937;
+      box-shadow: -4px 0 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Toimintopainikkeet */
+    .btn-icon {
+      @apply p-1.5 rounded-md transition-colors duration-150;
+    }
   `]
 })
 export class TaskViewComponent implements OnInit, OnDestroy {
@@ -347,10 +403,9 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     { label: this.translate('category'), value: 'category' },
     { label: this.translate('project'), value: 'project' },
     { label: this.translate('assignee'), value: 'assignee' },
-    { label: this.translate('progress'), value: 'progress' },
+    { label: this.translate('created'), value: 'createdAt' },
     { label: this.translate('scheduled'), value: 'scheduledDate' },
     { label: this.translate('deadline'), value: 'deadline' },
-    { label: this.translate('created'), value: 'createdAt' },
     { label: this.translate('actions'), value: 'actions' }
   ];
 
@@ -378,10 +433,9 @@ export class TaskViewComponent implements OnInit, OnDestroy {
       { label: this.translate('category'), value: 'category' },
       { label: this.translate('project'), value: 'project' },
       { label: this.translate('assignee'), value: 'assignee' },
-      { label: this.translate('progress'), value: 'progress' },
+      { label: this.translate('created'), value: 'createdAt' },
       { label: this.translate('scheduled'), value: 'scheduledDate' },
       { label: this.translate('deadline'), value: 'deadline' },
-      { label: this.translate('created'), value: 'createdAt' },
       { label: this.translate('actions'), value: 'actions' }
     ];
   }
@@ -433,28 +487,58 @@ export class TaskViewComponent implements OnInit, OnDestroy {
     
     // Näytetään tietty määrä sarakkeita näytön koon mukaan
     if (screenWidth < 640) {
-      // Mobiili - vain tärkeimmät sarakkeet
+      // Mobiili - vain tärkeimmät sarakkeet, actions aina viimeisenä
       this.visibleHeaders = this.tableHeaders.filter(h => 
         ['title', 'priority', 'state', 'actions'].includes(h.value)
       );
+      // Varmistetaan että actions on aina viimeisenä sarakkeena
+      this.visibleHeaders.sort((a, b) => {
+        if (a.value === 'actions') return 1;
+        if (b.value === 'actions') return -1;
+        return 0;
+      });
     } else if (screenWidth < 768) {
-      // Tablet - vähemmän sarakkeita
+      // Tablet - vähemmän sarakkeita, actions aina viimeisenä
       this.visibleHeaders = this.tableHeaders.filter(h => 
-        ['title', 'priority', 'state', 'category', 'deadline', 'actions'].includes(h.value)
+        ['title', 'priority', 'state', 'category', 'createdAt', 'actions'].includes(h.value)
       );
+      // Varmistetaan että actions on aina viimeisenä sarakkeena
+      this.visibleHeaders.sort((a, b) => {
+        if (a.value === 'actions') return 1;
+        if (b.value === 'actions') return -1;
+        return 0;
+      });
     } else if (screenWidth < 1024) {
-      // Pieni desktop - enemmän sarakkeita
+      // Pieni desktop - enemmän sarakkeita, actions aina viimeisenä
       this.visibleHeaders = this.tableHeaders.filter(h => 
-        ['title', 'priority', 'state', 'category', 'project', 'deadline', 'actions'].includes(h.value)
+        ['title', 'priority', 'state', 'category', 'project', 'createdAt', 'deadline', 'actions'].includes(h.value)
       );
+      // Varmistetaan että actions on aina viimeisenä sarakkeena
+      this.visibleHeaders.sort((a, b) => {
+        if (a.value === 'actions') return 1;
+        if (b.value === 'actions') return -1;
+        return 0;
+      });
     } else if (screenWidth < 1280) {
-      // Keskikokoinen desktop - useimmat sarakkeet
+      // Keskikokoinen desktop - useimmat sarakkeet, actions aina viimeisenä
       this.visibleHeaders = this.tableHeaders.filter(h => 
-        ['title', 'priority', 'state', 'category', 'project', 'assignee', 'deadline', 'actions'].includes(h.value)
+        ['title', 'priority', 'state', 'category', 'project', 'assignee', 'createdAt', 'scheduledDate', 'deadline', 'actions'].includes(h.value)
       );
+      // Varmistetaan että actions on aina viimeisenä sarakkeena
+      this.visibleHeaders.sort((a, b) => {
+        if (a.value === 'actions') return 1;
+        if (b.value === 'actions') return -1;
+        return 0;
+      });
     } else {
       // Suuri desktop - kaikki sarakkeet
-      this.visibleHeaders = this.tableHeaders;
+      this.visibleHeaders = [...this.tableHeaders];
+      // Varmistetaan että actions on aina viimeisenä sarakkeena
+      this.visibleHeaders.sort((a, b) => {
+        if (a.value === 'actions') return 1;
+        if (b.value === 'actions') return -1;
+        return 0;
+      });
     }
     
     // Aseta sopiva itemsPerPage-arvo näytön koon mukaan

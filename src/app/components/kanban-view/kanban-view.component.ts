@@ -73,16 +73,16 @@ import { ProjectContextService } from '../../services/project-context.service';
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 overflow-x-auto max-w-full">
         <!-- To Do Column -->
         <div class="kanban-column bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <div class="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-t-xl border-b border-yellow-100 dark:border-yellow-900/30">
+          <div class="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-t-xl border-b border-yellow-100 dark:border-yellow-900/30">
             <div class="flex justify-between items-center">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <svg class="w-5 h-5 mr-2 text-yellow-500 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center">
+                <svg class="w-4 h-4 mr-1.5 text-yellow-500 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
                 </svg>
                 {{ translate('toDo') }}
               </h3>
-              <span class="px-2.5 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-sm font-medium">
+              <span class="px-2 py-0.5 rounded-full bg-yellow-100 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-200 text-xs font-medium">
                 {{todoTasks.length}}
               </span>
             </div>
@@ -99,58 +99,58 @@ import { ProjectContextService } from '../../services/project-context.service';
             <div *ngFor="let task of todoTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-yellow-400"
+                 class="kanban-task p-3 mb-2 bg-white dark:from-gray-700 dark:to-gray-750 rounded-lg border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-yellow-400"
                  (click)="openTaskModal(task)">
-              <div class="flex justify-between mb-2">
-                <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
+              <div class="flex justify-between mb-1">
+                <h4 class="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{{task.title}}</h4>
                 <div class="badge" [ngClass]="{
                   'badge-high': task.priority === TaskPriority.HIGH,
                   'badge-medium': task.priority === TaskPriority.MEDIUM,
                   'badge-low': task.priority === TaskPriority.LOW
                 }">{{task.priority}}</div>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                 {{task.description}}
               </p>
               
               <!-- Aikataulutiedot -->
-              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
                 </div>
-                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
                 </div>
               </div>
               
               <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
                   <ng-container *ngIf="task.category">
                     <div *ngIf="getCategoryById(task.category) as category"
                          [style.backgroundColor]="category.color"
-                         class="w-3 h-3 rounded-full"></div>
-                    <span class="text-xs text-gray-600 dark:text-gray-400">
+                         class="w-2 h-2 rounded-full"></div>
+                    <span class="text-2xs text-gray-600 dark:text-gray-400">
                       {{getCategoryById(task.category)?.name}}
                     </span>
                   </ng-container>
                 </div>
-                <div *ngIf="task.assignee" class="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div *ngIf="task.assignee" class="flex items-center text-2xs text-gray-500 dark:text-gray-400">
+                  <svg class="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                   </svg>
                   {{getUserName(task.assignee)}}
                 </div>
               </div>
-              <div *ngIf="task.progress > 0" class="mt-2">
-                <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                  <div class="bg-blue-600 h-1.5 rounded-full" [style.width]="task.progress + '%'"></div>
+              <div *ngIf="task.progress > 0" class="mt-1">
+                <div class="w-full bg-gray-200 rounded-full h-1 dark:bg-gray-700">
+                  <div class="bg-blue-600 h-1 rounded-full" [style.width]="task.progress + '%'"></div>
                 </div>
               </div>
             </div>
@@ -166,16 +166,16 @@ import { ProjectContextService } from '../../services/project-context.service';
         
         <!-- In Progress Column -->
         <div class="kanban-column bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-t-xl border-b border-blue-100 dark:border-blue-900/30">
+          <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-t-xl border-b border-blue-100 dark:border-blue-900/30">
             <div class="flex justify-between items-center">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <svg class="w-5 h-5 mr-2 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center">
+                <svg class="w-4 h-4 mr-1.5 text-blue-500 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                         d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 {{ translate('inProgress') }}
               </h3>
-              <span class="px-2.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-sm font-medium">
+              <span class="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs font-medium">
                 {{inProgressTasks.length}}
               </span>
             </div>
@@ -192,58 +192,58 @@ import { ProjectContextService } from '../../services/project-context.service';
             <div *ngFor="let task of inProgressTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-blue-400"
+                 class="kanban-task p-3 mb-2 bg-white dark:from-gray-700 dark:to-gray-750 rounded-lg border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-blue-400"
                  (click)="openTaskModal(task)">
-              <div class="flex justify-between mb-2">
-                <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
+              <div class="flex justify-between mb-1">
+                <h4 class="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{{task.title}}</h4>
                 <div class="badge" [ngClass]="{
                   'badge-high': task.priority === TaskPriority.HIGH,
                   'badge-medium': task.priority === TaskPriority.MEDIUM,
                   'badge-low': task.priority === TaskPriority.LOW
                 }">{{task.priority}}</div>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                 {{task.description}}
               </p>
               
               <!-- Aikataulutiedot -->
-              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
                 </div>
-                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
                 </div>
               </div>
               
               <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
                   <ng-container *ngIf="task.category">
                     <div *ngIf="getCategoryById(task.category) as category"
                          [style.backgroundColor]="category.color"
-                         class="w-3 h-3 rounded-full"></div>
-                    <span class="text-xs text-gray-600 dark:text-gray-400">
+                         class="w-2 h-2 rounded-full"></div>
+                    <span class="text-2xs text-gray-600 dark:text-gray-400">
                       {{getCategoryById(task.category)?.name}}
                     </span>
                   </ng-container>
                 </div>
-                <div *ngIf="task.assignee" class="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                  <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div *ngIf="task.assignee" class="flex items-center text-2xs text-gray-500 dark:text-gray-400">
+                  <svg class="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                           d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                   </svg>
                   {{getUserName(task.assignee)}}
                 </div>
               </div>
-              <div *ngIf="task.progress > 0" class="mt-2">
-                <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                  <div class="bg-blue-600 h-1.5 rounded-full" [style.width]="task.progress + '%'"></div>
+              <div *ngIf="task.progress > 0" class="mt-1">
+                <div class="w-full bg-gray-200 rounded-full h-1 dark:bg-gray-700">
+                  <div class="bg-blue-600 h-1 rounded-full" [style.width]="task.progress + '%'"></div>
                 </div>
               </div>
             </div>
@@ -259,16 +259,16 @@ import { ProjectContextService } from '../../services/project-context.service';
         
         <!-- Done Column -->
         <div class="kanban-column bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-          <div class="p-4 bg-green-50 dark:bg-green-900/20 rounded-t-xl border-b border-green-100 dark:border-green-900/30">
+          <div class="p-3 bg-green-50 dark:bg-green-900/20 rounded-t-xl border-b border-green-100 dark:border-green-900/30">
             <div class="flex justify-between items-center">
-              <h3 class="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
-                <svg class="w-5 h-5 mr-2 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <h3 class="text-base font-semibold text-gray-900 dark:text-white flex items-center">
+                <svg class="w-4 h-4 mr-1.5 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
                         d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 {{ translate('done') }}
               </h3>
-              <span class="px-2.5 py-0.5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-sm font-medium">
+              <span class="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs font-medium">
                 {{doneTasks.length}}
               </span>
             </div>
@@ -285,62 +285,58 @@ import { ProjectContextService } from '../../services/project-context.service';
             <div *ngFor="let task of doneTasks" 
                  cdkDrag 
                  [cdkDragData]="task"
-                 class="kanban-task p-4 mb-3 bg-gradient-to-br from-white to-gray-50 dark:from-gray-700 dark:to-gray-750 rounded-lg shadow-md hover:shadow-lg hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-green-400"
+                 class="kanban-task p-3 mb-2 bg-white dark:from-gray-700 dark:to-gray-750 rounded-lg border border-gray-100 shadow hover:shadow-md hover:-translate-y-1 cursor-move transition-all duration-200 border-l-4 border-green-400"
                  (click)="openTaskModal(task)">
-              <div class="flex justify-between mb-2">
-                <h4 class="font-medium text-gray-900 dark:text-white">{{task.title}}</h4>
+              <div class="flex justify-between mb-1">
+                <h4 class="font-medium text-sm text-gray-900 dark:text-white line-clamp-1">{{task.title}}</h4>
                 <div class="badge" [ngClass]="{
                   'badge-high': task.priority === TaskPriority.HIGH,
                   'badge-medium': task.priority === TaskPriority.MEDIUM,
                   'badge-low': task.priority === TaskPriority.LOW
                 }">{{task.priority}}</div>
               </div>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2">
+              <p class="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
                 {{task.description}}
               </p>
               
               <!-- Aikataulutiedot -->
-              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div *ngIf="task.deadline || task.scheduledDate" class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                <div *ngIf="task.scheduledDate" class="flex items-center space-x-1 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('scheduledDate') }}: {{ task.scheduledDate | date:'dd.MM.yyyy' }}</span>
                 </div>
-                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-1">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div *ngIf="task.deadline" class="flex items-center space-x-1 text-red-500 dark:text-red-400 mb-0.5">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                   </svg>
-                  <span>{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
+                  <span class="text-2xs">{{ translate('deadline') }}: {{ task.deadline | date:'dd.MM.yyyy' }}</span>
                 </div>
               </div>
               
               <div class="flex justify-between items-center">
-                <div class="flex items-center space-x-2">
+                <div class="flex items-center space-x-1">
                   <ng-container *ngIf="task.category">
                     <div *ngIf="getCategoryById(task.category) as category"
                          [style.backgroundColor]="category.color"
-                         class="w-3 h-3 rounded-full"></div>
-                    <span class="text-sm text-gray-900 dark:text-white">
+                         class="w-2 h-2 rounded-full"></div>
+                    <span class="text-2xs text-gray-600 dark:text-gray-400">
                       {{getCategoryById(task.category)?.name}}
                     </span>
                   </ng-container>
-                  <span *ngIf="!task.category" class="text-sm text-gray-500">
-                    {{ translate('noCategory') }}
-                  </span>
                 </div>
-                <div class="flex items-center">
-                  <svg class="w-4 h-4 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                <div *ngIf="task.assignee" class="flex items-center text-2xs text-gray-500 dark:text-gray-400">
+                  <svg class="w-2.5 h-2.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                   </svg>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{getUserName(task.assignee) || translate('notAssigned')}}
-                  </span>
+                  {{getUserName(task.assignee)}}
                 </div>
               </div>
-              <div *ngIf="task.progress > 0" class="mt-2">
-                <div class="w-full bg-gray-200 rounded-full h-1.5 dark:bg-gray-700">
-                  <div class="bg-blue-600 h-1.5 rounded-full" [style.width]="task.progress + '%'"></div>
+              <div *ngIf="task.progress > 0" class="mt-1">
+                <div class="w-full bg-gray-200 rounded-full h-1 dark:bg-gray-700">
+                  <div class="bg-blue-600 h-1 rounded-full" [style.width]="task.progress + '%'"></div>
                 </div>
               </div>
             </div>
@@ -373,58 +369,76 @@ import { ProjectContextService } from '../../services/project-context.service';
     }
     
     .kanban-task {
-      padding: 1rem;
-      margin-bottom: 0.75rem;
-      background-color: #fff;
-      border-radius: 0.75rem; 
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      border-left: 3px solid #818cf8;
-      
-      &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      }
-      
-      h4 {
-        font-family: var(--font-heading);
-        font-weight: var(--font-medium);
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
-        letter-spacing: -0.01em;
-        color: #1f2937;
-      }
-      
-      p {
-        font-family: var(--font-body);
-        font-size: 0.875rem;
-        color: #6b7280;
-        margin-bottom: 1rem;
-        line-height: 1.4;
-      }
-      
-      .badge {
-        font-family: var(--font-body);
-        font-weight: var(--font-medium);
-        font-size: 0.75rem;
-        padding: 0.25rem 0.75rem;
-        border-radius: 9999px;
-        letter-spacing: -0.01em;
-      }
+      position: relative;
+      overflow: hidden;
+      background-image: linear-gradient(to bottom right, rgba(249, 250, 251, 0.8), rgba(255, 255, 255, 1));
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.06);
+      backdrop-filter: blur(8px);
     }
     
-    .cdk-drag-preview {
-      box-shadow: 0 5px 15px rgba(0,0,0,0.15);
-      opacity: 0.8;
-    }
-    
-    .cdk-drag-placeholder {
+    .kanban-task::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23f1f5f9' fill-opacity='0.3' fill-rule='evenodd'/%3E%3C/svg%3E");
       opacity: 0.3;
+      z-index: 0;
+      pointer-events: none;
     }
     
-    .cdk-drag-animating {
-      transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+    .kanban-task > * {
+      position: relative;
+      z-index: 1;
+    }
+    
+    .kanban-task:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+      border-color: rgba(229, 231, 235, 1);
+    }
+    
+    /* Tumma teema */
+    .dark .kanban-task {
+      background-image: linear-gradient(to bottom right, rgba(55, 65, 81, 0.8), rgba(31, 41, 55, 0.9));
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    }
+    
+    .dark .kanban-task::before {
+      opacity: 0.1;
+    }
+    
+    .dark .kanban-task:hover {
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.15);
+    }
+    
+    .badge {
+      @apply px-1.5 py-0.5 text-2xs font-medium rounded-full;
+    }
+    
+    .badge-high {
+      @apply bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200;
+    }
+    
+    .badge-medium {
+      @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-200;
+    }
+    
+    .badge-low {
+      @apply bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200;
+    }
+    
+    .text-2xs {
+      font-size: 0.65rem; /* 10.4px */
+      line-height: 1rem; /* 16px */
+    }
+    
+    .line-clamp-1 {
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
     
     .line-clamp-2 {
